@@ -3,3 +3,6 @@
 
 # Output files
 */Debug
+
+# Useless xml file
+*.componentinfo.xml
