@@ -108,7 +108,34 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="common.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="common.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="data_lut.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="data_nums_large.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="data_nums_small.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="epaper.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="epaper.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="main.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="timer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="timer.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>
