@@ -1,0 +1,2 @@
+# Ignore generated files, they will be copied to the avr/timer directory
+*.h
