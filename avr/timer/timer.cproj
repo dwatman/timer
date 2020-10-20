@@ -114,9 +114,6 @@
     <Compile Include="common.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="data_lut.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="data_nums_large.h">
       <SubType>compile</SubType>
     </Compile>
@@ -132,10 +129,10 @@
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="timer.c">
+    <Compile Include="timer_funcs.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="timer.h">
+    <Compile Include="timer_funcs.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

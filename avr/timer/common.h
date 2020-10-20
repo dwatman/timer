@@ -1,7 +1,7 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
-// PORTA
+// PORTA pin definitions
 #define MBLANK_PIN	2
 #define SEC01_PIN	3
 #define SEC10_PIN	4
@@ -16,7 +16,7 @@
 #define MIN10_MASK	(1<<MIN10_PIN)
 #define HR_MASK		(1<<HR_PIN)
 
-// PORTB
+// PORTB pin definitions
 #define LOWBAT_PIN	0
 #define BUSY_PIN	1
 #define RST_PIN		2
@@ -31,14 +31,14 @@
 #define MOSI_MASK	(1<<MOSI_BIT)	// MOSI_BIT predefined
 #define SCK_MASK	(1<<SCK_BIT)	// SCK_BIT predefined
 
-// PORTC
+// PORTC pin definitions
 #define LED_PIN		0
 #define MOFF_PIN	1
 
 #define LED_MASK	(1<<LED_PIN)
 #define MOFF_MASK	(1<<MOFF_PIN)
 
-// PORTD
+// PORTD pin definitions
 #define CLR_PIN		2
 #define START_PIN	3
 #define MEM3_PIN	4
@@ -68,7 +68,7 @@ typedef struct {
 	unsigned int num_bytes;
 } digit_t;
 
+void init_pins(void);
 void delay_ms(unsigned int delay);
-
 
 #endif

@@ -1,6 +1,9 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
+
 #include "common.h"
+#include "epaper.h"
+#include "timer_funcs.h"
 
 /*
 Timer usage:
@@ -46,58 +49,52 @@ Interrupts:
 	TIMER2_COMPA	RTC timer
 */
 
+extern digit_t hr01, chm, min10, min01, cms, sec10, sec01;
+
+timer_t timer;
+
 volatile unsigned int time_ms;	// For general timing
 volatile unsigned char flg;		// General purpose flags
 
 int main(void) {
-	// PIN SETUP
-	DDRA |= MBLANK_MASK;	// Set pin to output for MIC_BLANK
 
-	PORTA |= SEC01_MASK;	// Enable pullup for button
-	PORTA |= SEC10_MASK;	// Enable pullup for button
-	PORTA |= MIN01_MASK;	// Enable pullup for button
-	PORTA |= MIN10_MASK;	// Enable pullup for button
-	PORTA |= HR_MASK; 		// Enable pullup for button
+	init_pins();	// Pin setup (direction and pullups)
 
-	DDRB |= RST_MASK;	// set pin to output for RST#
-	DDRB |= CMD_MASK;	// set pin to output for DAT/CMD#
-	DDRB |= CS_MASK;	// set pin to output for CS#
-	DDRB |= MOSI_MASK;	// set pin to output for MOSI
-	DDRB |= SCK_MASK;	// set pin to output for SCK
-
-	DDRC |= LED_MASK;	// set pin to output for LED
-	DDRC |= MOFF_MASK;	// set pin to output for MIC_OFF
-
-	DDRD |= TXD_MASK;		// set pin to output for TXD
-	DDRD |= BUZZER_MASK;	// set pin to output for BUZZER
-
-	PORTD |= CLR_MASK;		// Enable pullup for button
-	PORTD |= START_MASK;	// Enable pullup for button
-	PORTD |= MEM3_MASK;		// Enable pullup for button
-	PORTD |= MEM2_MASK;		// Enable pullup for button
-	PORTD |= MEM1_MASK;		// Enable pullup for button
-
-	// INITIAL STATE
-	PORTB |= RST_MASK;		// RST high
-	PORTB |= CS_MASK;		// CS high
-
-	//PORTC |= MOFF_MASK;	// Disable microphone
-
-
-	// TIMER1 SETUP (1 ms interrupt)
+	// TIMER1 setup (1 ms interrupt)
 	TCCR1B = (1<<WGM12) | (1<<CS11);	// CTC mode, prescaler /8 (1 MHz count)
 	OCR1A = 999;						// MAX set for 1 ms overflow
 	TIMSK1 = (1<<OCIE1A);				// Enable interrupt on compare match
 
-	// SPI SETUP
+	// SPI setup
 	SPCR = (1<<SPE) | (1<<MSTR);	// /4 prescaler (2 MHz), master mode
 	SPSR = (1<<SPI2X);				// 2x speed (4 MHz)
+
+	// Initial state
+	PORTB |= CS_MASK;		// CS high
+	//PORTC |= MOFF_MASK;	// Disable microphone
+
+	// clear count
+	timer.hr01 = 0;
+	timer.min10 = 0;
+	timer.min01 = 0;
+	timer.sec10 = 0;
+	timer.sec01 = 0;
+
+	init_digits();
 
 	time_ms = 0;
 	flg = 0;
 
 	sei();		// Enable interrupts
 
+	while (PINC & START_MASK);	// wait for start button
+
+	ep_init_hw();
+	delay_ms(1);
+	ep_set_all_white();
+	delay_ms(1);
+	ep_update_display();
+	ep_set_all_white();
 
 	while (1) {
 

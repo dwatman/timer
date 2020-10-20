@@ -1,5 +1,5 @@
-#ifndef TIMER_H_
-#define TIMER_H_
+#ifndef TIMER_FUNCS_H_
+#define TIMER_FUNCS_H_
 
 typedef struct {
 	unsigned char hr01;
