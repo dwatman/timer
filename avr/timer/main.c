@@ -15,11 +15,11 @@ PORTA:
 	0	AI	MIC_FAST
 	1	AI	MIC_SLOW
 	2	O	MIC_BLANK
-	3	I	BTN_SEC01
-	4	I	BTN_SEC10
-	5	I	BTN_MIN01
-	6	I	BTN_MIN10
-	7	I	BTN_HR
+	3	I	BTN_SEC01	PCINT3
+	4	I	BTN_SEC10	PCINT4
+	5	I	BTN_MIN01	PCINT5
+	6	I	BTN_MIN10	PCINT6
+	7	I	BTN_HR		PCINT7
 PORTB:
 	0	I	LOWBAT
 	1	I	BUSY
@@ -37,11 +37,11 @@ PORTC:
 PORTD:
 	0	I	RXD
 	1	O	TXD
-	2	I	BTN_CLR
-	3	I	BTN_START
-	4	I	BTN_MEM3
-	5	I	BTN_MEM2
-	6	I	BTN_MEM1
+	2	I	BTN_CLR		INT0
+	3	I	BTN_START	INT1
+	4	I	BTN_MEM3	PCINT28
+	5	I	BTN_MEM2	PCINT29
+	6	I	BTN_MEM1	PCINT30
 	7	O	BUZZER
 
 Interrupts:
@@ -60,6 +60,20 @@ int main(void) {
 	int i;
 
 	init_pins();	// Pin setup (direction and pullups)
+
+	// External interrupt pins (can wake from sleep)
+	EICRA = ISC11 | ISC01;				// Set INT1 and INT0 (START/CLEAR buttons) sensitive to falling edge
+	EIMSK = (1<<INT1) | (1<<INT0);		// Enable interrupts for INT1 and INT0 (START/CLEAR buttons)
+	EIFR = (1<<INTF1) | (1<<INTF0);		// Clear interrupt flags
+
+	// Pin change interrupts
+	// Used: 3-7, 28-30 = PC3, PC0
+	//PCICR = (1<<PCIE3) | (1<<PCIE0);	// Enable pin change interrupts
+	PCMSK3 = (1<<PCINT30) | (1<<PCINT29) | (1<<PCINT28);							// Unmask interrupts for MEM1-3 buttons
+	PCMSK0 = (1<<PCINT7) | (1<<PCINT6) | (1<<PCINT5) | (1<<PCINT4) | (1<<PCINT3);	// Unmask interrupts for digit buttons
+	PCIFR = (1<<PCIF3) | (1<<PCIF0);	// Clear interrupt flags
+
+
 
 	// TIMER1 setup (1 ms interrupt)
 	TCCR1B = (1<<WGM12) | (1<<CS11);	// CTC mode, prescaler /8 (1 MHz count)
@@ -142,4 +156,24 @@ ISR(TIMER1_COMPA_vect) {
 	//if (time_ms%1000 == 0) flg |= FLAG_1S;
 
 	if (time_ms%1000 == 0) PORTC ^= LED_MASK;
+}
+
+// External Interrupt Request 0 (CLR button)
+ISR(INT0_vect) {
+	PORTC ^= LED_MASK;
+}
+
+// External Interrupt Request 1 (START button)
+ISR(INT1_vect) {
+	PORTC ^= LED_MASK;
+}
+
+// Pin Change Interrupt Request 0 (digit buttons)
+ISR(PCINT0_vect) {
+	PORTC ^= LED_MASK;
+}
+
+// Pin Change Interrupt Request 3 (memory buttons)
+ISR(PCINT3_vect) {
+	PORTC ^= LED_MASK;
 }
