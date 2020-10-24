@@ -57,6 +57,7 @@ volatile unsigned int time_ms;	// For general timing
 volatile unsigned char flg;		// General purpose flags
 
 int main(void) {
+	int i;
 
 	init_pins();	// Pin setup (direction and pullups)
 
@@ -87,14 +88,47 @@ int main(void) {
 
 	sei();		// Enable interrupts
 
-	while (PINC & START_MASK);	// wait for start button
+	while (PIND & START_MASK);	// wait for start button
 
-	ep_init_hw();
+	ep_init_hw();		// Initialise display for full refresh
 	delay_ms(1);
 	ep_set_all_white();
 	delay_ms(1);
-	ep_update_display();
+	ep_update_display();	// Update display (full refresh)
 	ep_set_all_white();
+
+	while (PIND & START_MASK);	// wait for start button
+
+	ep_init_part();		// Initialise display for partial refresh
+	delay_ms(1);
+
+	for (i=0; i<70; i++) {
+		if ((i == 0) || (i == 1)) {	// Do twice to cover both buffers
+			ep_set_num(&cms, 0);	// Draw colon between minutes and seconds
+			ep_set_num(&chm, 0);	// Draw colon between hours and minutes
+		}
+		ep_set_num(&sec01, timer.sec01);
+		ep_set_num(&sec10, timer.sec10);
+		ep_set_num(&min01, timer.min01);
+		ep_set_num(&min10, timer.min10);
+		ep_set_num(&hr01, timer.hr01);
+		ep_update_display_partial();	// Update display (partial refresh)
+		inc_timer(&timer);
+	}
+
+	while (PIND & START_MASK);	// wait for start button
+
+	ep_init_hw();	// Initialise display for full refresh
+	ep_set_all_white();
+	delay_ms(1);
+
+	ep_update_display();	// Update display (full refresh)
+	delay_ms(1);
+
+	delay_ms(5000);
+
+	ep_deepsleep();		// Enter deep sleep mode
+
 
 	while (1) {
 
