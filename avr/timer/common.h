@@ -75,6 +75,7 @@ enum state_e {
 };
 
 void init_pins(void);
+void init_pin_interrupts(void);
 void delay_ms(unsigned int delay);
 
 #endif

@@ -60,21 +60,8 @@ volatile enum state_e state;	// Operating state
 int main(void) {
 	int i;
 
-	init_pins();	// Pin setup (direction and pullups)
-
-	// External interrupt pins (can wake from sleep)
-	EICRA = ISC11 | ISC01;				// Set INT1 and INT0 (START/CLEAR buttons) sensitive to falling edge
-	EIMSK = (1<<INT1) | (1<<INT0);		// Enable interrupts for INT1 and INT0 (START/CLEAR buttons)
-	EIFR = (1<<INTF1) | (1<<INTF0);		// Clear interrupt flags
-
-	// Pin change interrupts
-	// Used: 3-7, 28-30 = PC3, PC0
-	//PCICR = (1<<PCIE3) | (1<<PCIE0);	// Enable pin change interrupts
-	PCMSK3 = (1<<PCINT30) | (1<<PCINT29) | (1<<PCINT28);							// Unmask interrupts for MEM1-3 buttons
-	PCMSK0 = (1<<PCINT7) | (1<<PCINT6) | (1<<PCINT5) | (1<<PCINT4) | (1<<PCINT3);	// Unmask interrupts for digit buttons
-	PCIFR = (1<<PCIF3) | (1<<PCIF0);	// Clear interrupt flags
-
-
+	init_pins();			// Pin setup (direction and pullups)
+	init_pin_interrupts();	// Set interrupts for buttons
 
 	// TIMER1 setup (1 ms interrupt)
 	TCCR1B = (1<<WGM12) | (1<<CS11);	// CTC mode, prescaler /8 (1 MHz count)
