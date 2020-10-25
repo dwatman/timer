@@ -55,6 +55,7 @@ timer_t timer;
 
 volatile unsigned int time_ms;	// For general timing
 volatile unsigned char flg;		// General purpose flags
+volatile enum state_e state;	// Operating state
 
 int main(void) {
 	int i;
@@ -99,6 +100,7 @@ int main(void) {
 
 	time_ms = 0;
 	flg = 0;
+	state = STATE_STOPPED;
 
 	sei();		// Enable interrupts
 

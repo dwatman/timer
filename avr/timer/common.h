@@ -68,6 +68,12 @@ typedef struct {
 	unsigned int num_bytes;
 } digit_t;
 
+enum state_e {
+	STATE_IDLE_SLEEP,	// Not in use, minimise power
+	STATE_STOPPED,		// In use but not counting (time being set etc)
+	STATE_ACTIVE		// In use, counting
+};
+
 void init_pins(void);
 void delay_ms(unsigned int delay);
 
