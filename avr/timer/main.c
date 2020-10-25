@@ -76,12 +76,7 @@ int main(void) {
 	PORTB |= CS_MASK;		// CS high
 	//PORTC |= MOFF_MASK;	// Disable microphone
 
-	// clear count
-	timer.hr01 = 0;
-	timer.min10 = 0;
-	timer.min01 = 0;
-	timer.sec10 = 0;
-	timer.sec01 = 0;
+	timer_clear(&timer);	// Clear timer count
 
 	init_digits();
 
@@ -116,7 +111,8 @@ int main(void) {
 		ep_set_num(&min10, timer.min10);
 		ep_set_num(&hr01, timer.hr01);
 		ep_update_display_partial();	// Update display (partial refresh)
-		inc_timer(&timer);
+		timer.sec01++;
+		timer_check_digits(&timer);
 	}
 
 	while (PIND & START_MASK);	// wait for start button
@@ -149,6 +145,8 @@ ISR(TIMER1_COMPA_vect) {
 
 // External Interrupt Request 0 (CLR button)
 ISR(INT0_vect) {
+	timer_clear(&timer);	// Clear timer count
+
 	PORTC ^= LED_MASK;
 }
 
@@ -159,10 +157,40 @@ ISR(INT1_vect) {
 
 // Pin Change Interrupt Request 0 (digit buttons)
 ISR(PCINT0_vect) {
+	unsigned char buttons;
+
+	buttons = PINA;				// Read button inputs
+	buttons = buttons ^ 0xFF;	// Invert as buttons are active low
+	buttons = buttons & (SEC01_MASK | SEC10_MASK | MIN01_MASK | MIN10_MASK | HR_MASK);	// Mask for button pins
+
+	switch (buttons) {
+		case SEC01_MASK: timer.sec01++; timer_check_digits(&timer); break;
+		case SEC10_MASK: timer.sec10++; timer_check_digits(&timer); break;
+		case MIN01_MASK: timer.min01++; timer_check_digits(&timer); break;
+		case MIN10_MASK: timer.min10++; timer_check_digits(&timer); break;
+		case HR_MASK:    timer.hr01++;  timer_check_digits(&timer); break;
+		default: return;	// Do nothing if no buttons or multiple buttons are pressed
+	}
+
+	// This only runs if a valid case occurred
 	PORTC ^= LED_MASK;
 }
 
 // Pin Change Interrupt Request 3 (memory buttons)
 ISR(PCINT3_vect) {
+	unsigned char buttons;
+
+	buttons = PIND;				// Read button inputs
+	buttons = buttons ^ 0xFF;	// Invert as buttons are active low
+	buttons = buttons & (MEM1_MASK | MEM2_MASK | MEM3_MASK);	// Mask for button pins
+
+	switch (buttons) {
+		case MEM1_MASK: timer_set_mem1(&timer); break;
+		case MEM2_MASK: timer_set_mem2(&timer); break;
+		case MEM3_MASK: timer_set_mem3(&timer); break;
+		default: return;	// Do nothing if no buttons or multiple buttons are pressed
+	}
+
+	// This only runs if a valid case occurred
 	PORTC ^= LED_MASK;
 }

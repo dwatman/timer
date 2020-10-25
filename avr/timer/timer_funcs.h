@@ -9,6 +9,10 @@ typedef struct {
 	unsigned char sec01;
 } timer_t;
 
-void inc_timer(timer_t *timer);
+void timer_clear(timer_t *timer);
+void timer_set_mem1(timer_t *timer);
+void timer_set_mem2(timer_t *timer);
+void timer_set_mem3(timer_t *timer);
+void timer_check_digits(timer_t *timer);
 
 #endif
