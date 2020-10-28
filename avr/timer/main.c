@@ -68,6 +68,13 @@ int main(void) {
 	OCR1A = 999;						// MAX set for 1 ms overflow
 	TIMSK1 = (1<<OCIE1A);				// Enable interrupt on compare match
 
+	// TIMER2 setup (async from external 32.768kHz crystal)
+	ASSR = (1<<AS2);				// Set async mode
+	TCCR2B = (1<<CS22) | (1<<CS20);	// Prescaler /128 (256 Hz count)
+	while (ASSR & (1<<TCR2BUB));	// Wait for buffer sync
+	TIFR2 = 0xFF;					// Clear possible interrupt flags
+	TIMSK2 = (1<<TOIE2);			// Enable interrupt on overflow
+
 	// SPI setup
 	SPCR = (1<<SPE) | (1<<MSTR);	// /4 prescaler (2 MHz), master mode
 	SPSR = (1<<SPI2X);				// 2x speed (4 MHz)
@@ -140,7 +147,12 @@ ISR(TIMER1_COMPA_vect) {
 
 	//if (time_ms%1000 == 0) flg |= FLAG_1S;
 
-	if (time_ms%1000 == 0) PORTC ^= LED_MASK;
+	//if (time_ms%1000 == 0) PORTC ^= LED_MASK;
+}
+
+// Timer/Counter2 Overflow
+ISR(TIMER2_OVF_vect) {
+	PORTC ^= LED_MASK;
 }
 
 // External Interrupt Request 0 (CLR button)
