@@ -56,15 +56,13 @@ Interrupts:
 
 extern digit_t hr01, chm, min10, min01, cms, sec10, sec01;
 
-timer_t timer;
+timer_t count_time;	// ? volatile
 
 volatile unsigned int time_ms;	// For general timing
 volatile unsigned char flg;		// General purpose flags
 volatile enum state_e state;	// Operating state
 
 int main(void) {
-	int i;
-
 	init_pins();			// Pin setup (direction and pullups)
 	init_pin_interrupts();	// Set interrupts for buttons
 
@@ -88,7 +86,7 @@ int main(void) {
 	PORTB |= CS_MASK;		// CS high
 	//PORTC |= MOFF_MASK;	// Disable microphone
 
-	timer_clear(&timer);	// Clear timer count
+	timer_clear(&count_time);	// Clear timer count
 
 	init_digits();
 
@@ -98,51 +96,28 @@ int main(void) {
 
 	sei();		// Enable interrupts
 
-	while (PIND & START_MASK);	// wait for start button
-
-	ep_init_hw();		// Initialise display for full refresh
+	ep_init_hw();			// Initialise display for full refresh
 	delay_ms(1);
-	ep_set_all_white();
+	ep_set_all_white();		// Clear display buffer
 	delay_ms(1);
 	ep_update_display();	// Update display (full refresh)
-	ep_set_all_white();
-
-	while (PIND & START_MASK);	// wait for start button
-
-	ep_init_part();		// Initialise display for partial refresh
-	delay_ms(1);
-
-	for (i=0; i<70; i++) {
-		if ((i == 0) || (i == 1)) {	// Do twice to cover both buffers
-			ep_set_num(&cms, 0);	// Draw colon between minutes and seconds
-			ep_set_num(&chm, 0);	// Draw colon between hours and minutes
-		}
-		ep_set_num(&sec01, timer.sec01);
-		ep_set_num(&sec10, timer.sec10);
-		ep_set_num(&min01, timer.min01);
-		ep_set_num(&min10, timer.min10);
-		ep_set_num(&hr01, timer.hr01);
-		ep_update_display_partial();	// Update display (partial refresh)
-		timer.sec01++;
-		timer_check_digits(&timer);
-	}
-
-	while (PIND & START_MASK);	// wait for start button
-
-	ep_init_hw();	// Initialise display for full refresh
-	ep_set_all_white();
-	delay_ms(1);
-
-	ep_update_display();	// Update display (full refresh)
-	delay_ms(1);
-
-	delay_ms(5000);
-
-	ep_deepsleep();		// Enter deep sleep mode
-
+	ep_set_all_white();		// Clear second display buffer
+	ep_deepsleep();			// Enter deep sleep mode
 
 	while (1) {
+		if (flg & FLG_UPD) {
+			ep_init_part();		// Initialise display for partial refresh
+			delay_ms(1);
+			ep_set_num(&sec01, count_time.sec01);
+			ep_set_num(&sec10, count_time.sec10);
+			ep_set_num(&min01, count_time.min01);
+			ep_set_num(&min10, count_time.min10);
+			ep_set_num(&hr01, count_time.hr01);
+			ep_update_display_partial();	// Update display (partial refresh)
+			ep_deepsleep();		// Enter deep sleep mode
 
+			flg &= ~FLG_UPD;	// Clear flag
+		}
 	}
 }
 
@@ -162,7 +137,8 @@ ISR(TIMER2_OVF_vect) {
 
 // External Interrupt Request 0 (CLR button)
 ISR(INT0_vect) {
-	timer_clear(&timer);	// Clear timer count
+	timer_clear(&count_time);	// Clear timer count
+	flg |= FLG_UPD;		// Set flag to update display
 
 	PORTC ^= LED_MASK;
 }
@@ -181,15 +157,17 @@ ISR(PCINT0_vect) {
 	buttons = buttons & (SEC01_MASK | SEC10_MASK | MIN01_MASK | MIN10_MASK | HR_MASK);	// Mask for button pins
 
 	switch (buttons) {
-		case SEC01_MASK: timer.sec01++; timer_check_digits(&timer); break;
-		case SEC10_MASK: timer.sec10++; timer_check_digits(&timer); break;
-		case MIN01_MASK: timer.min01++; timer_check_digits(&timer); break;
-		case MIN10_MASK: timer.min10++; timer_check_digits(&timer); break;
-		case HR_MASK:    timer.hr01++;  timer_check_digits(&timer); break;
+		case SEC01_MASK: count_time.sec01++; timer_check_digits(&count_time); break;
+		case SEC10_MASK: count_time.sec10++; timer_check_digits(&count_time); break;
+		case MIN01_MASK: count_time.min01++; timer_check_digits(&count_time); break;
+		case MIN10_MASK: count_time.min10++; timer_check_digits(&count_time); break;
+		case HR_MASK:    count_time.hr01++;  timer_check_digits(&count_time); break;
 		default: return;	// Do nothing if no buttons or multiple buttons are pressed
 	}
 
 	// This only runs if a valid case occurred
+	flg |= FLG_UPD;		// Set flag to update display
+
 	PORTC ^= LED_MASK;
 }
 
@@ -206,12 +184,14 @@ ISR(PCINT3_vect) {
 	buttons = buttons & (MEM1_MASK | MEM2_MASK | MEM3_MASK);	// Mask for button pins
 
 	switch (buttons) {
-		case MEM1_MASK: timer_set_mem1(&timer); break;
-		case MEM2_MASK: timer_set_mem2(&timer); break;
-		case MEM3_MASK: timer_set_mem3(&timer); break;
+		case MEM1_MASK: timer_read_mem1(&count_time); break;
+		case MEM2_MASK: timer_read_mem2(&count_time); break;
+		case MEM3_MASK: timer_read_mem3(&count_time); break;
 		default: return;	// Do nothing if no buttons or multiple buttons are pressed
 	}
 
 	// This only runs if a valid case occurred
+	flg |= FLG_UPD;		// Set flag to update display
+
 	PORTC ^= LED_MASK;
 }

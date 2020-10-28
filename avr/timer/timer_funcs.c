@@ -1,3 +1,5 @@
+#include <avr/eeprom.h>
+
 #include "timer_funcs.h"
 #include "common.h"
 
@@ -9,28 +11,28 @@ void timer_clear(timer_t *timer) {
 	timer->sec01 = 0;
 }
 
-void timer_set_mem1(timer_t *timer) {
-	timer->hr01 = 0;
-	timer->min10 = 0;
-	timer->min01 = 0;
-	timer->sec10 = 1;
-	timer->sec01 = 1;
+void timer_read_mem1(timer_t *timer) {
+	eeprom_read_block(timer, (void *)EEPROM_MEM1_ADDR, sizeof(timer_t));
 }
 
-void timer_set_mem2(timer_t *timer) {
-	timer->hr01 = 0;
-	timer->min10 = 0;
-	timer->min01 = 1;
-	timer->sec10 = 2;
-	timer->sec01 = 3;
+void timer_read_mem2(timer_t *timer) {
+	eeprom_read_block(timer, (void *)EEPROM_MEM2_ADDR, sizeof(timer_t));
 }
 
-void timer_set_mem3(timer_t *timer) {
-	timer->hr01 = 0;
-	timer->min10 = 1;
-	timer->min01 = 0;
-	timer->sec10 = 0;
-	timer->sec01 = 0;
+void timer_read_mem3(timer_t *timer) {
+	eeprom_read_block(timer, (void *)EEPROM_MEM3_ADDR, sizeof(timer_t));
+}
+
+void timer_write_mem1(timer_t *timer) {
+	eeprom_update_block(timer, (void *)EEPROM_MEM1_ADDR, sizeof(timer_t));
+}
+
+void timer_write_mem2(timer_t *timer) {
+	eeprom_update_block(timer, (void *)EEPROM_MEM2_ADDR, sizeof(timer_t));
+}
+
+void timer_write_mem3(timer_t *timer) {
+	eeprom_update_block(timer, (void *)EEPROM_MEM3_ADDR, sizeof(timer_t));
 }
 
 void timer_check_digits(timer_t *timer) {

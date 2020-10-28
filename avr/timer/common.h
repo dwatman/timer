@@ -59,6 +59,9 @@
 #define DIGIT_BIG		1
 #define DIGIT_COLON		2
 
+// Main loop flags
+#define FLG_UPD	0x01
+
 typedef struct {
 	unsigned char type;
 	unsigned char x_start;
