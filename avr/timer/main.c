@@ -6,10 +6,6 @@
 #include "timer_funcs.h"
 
 /*
-Timer usage:
-	Timer 1		1ms counter?
-	Timer 2		RTC counter
-
 Pin usage:
 PORTA:
 	0	AI	MIC_FAST
@@ -22,7 +18,7 @@ PORTA:
 	7	I	BTN_HR		PCINT7
 PORTB:
 	0	I	LOWBAT
-	1	I	BUSY
+	1	I	BUSY		PCINT9
 	2	O	RST#
 	3	O	DAT/CMD#
 	4	O	CS#
@@ -44,9 +40,18 @@ PORTD:
 	6	I	BTN_MEM1	PCINT30
 	7	O	BUZZER
 
+Timer usage:
+	Timer 1		1ms counter?
+	Timer 2		RTC counter
+
 Interrupts:
 	TIMER1_COMPA	millisecond timer?
-	TIMER2_COMPA	RTC timer
+	TIMER2_OVF		RTC timer
+	INT0			CLR button
+	INT1			START button
+	PCINT0			Digit buttons
+	PCINT1			EPD BUSY signal
+	PCINT3			Memory buttons
 */
 
 extern digit_t hr01, chm, min10, min01, cms, sec10, sec01;
@@ -186,6 +191,10 @@ ISR(PCINT0_vect) {
 
 	// This only runs if a valid case occurred
 	PORTC ^= LED_MASK;
+}
+
+// Pin Change Interrupt Request 1 (EPD busy signal)
+ISR(PCINT1_vect) {
 }
 
 // Pin Change Interrupt Request 3 (memory buttons)

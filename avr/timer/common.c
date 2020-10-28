@@ -38,11 +38,13 @@ void init_pin_interrupts(void) {
 	EIFR = (1<<INTF1) | (1<<INTF0);		// Clear interrupt flags
 
 	// Pin change interrupts
-	// Used: 3-7, 28-30 = PC3, PC0
-	PCICR = (1<<PCIE3) | (1<<PCIE0);	// Enable pin change interrupts
-	PCMSK3 = (1<<PCINT30) | (1<<PCINT29) | (1<<PCINT28);							// Unmask interrupts for MEM1-3 buttons
-	PCMSK0 = (1<<PCINT7) | (1<<PCINT6) | (1<<PCINT5) | (1<<PCINT4) | (1<<PCINT3);	// Unmask interrupts for digit buttons
-	PCIFR = (1<<PCIF3) | (1<<PCIF0);	// Clear interrupt flags
+	// Used: 3-7, 9, 28-30 = PC3, PC1, PC0
+	PCICR = (1<<PCIE3) | (1<<PCIE1) | (1<<PCIE0);			// Enable pin change interrupts
+	PCMSK3 = (1<<PCINT30) | (1<<PCINT29) | (1<<PCINT28);	// Unmask interrupts for MEM1-3 buttons
+	PCMSK1 = (1<<PCINT9);									// Unmask interrupt for EDP BUSY signal
+	PCMSK0 = (1<<PCINT7) | (1<<PCINT6) | (1<<PCINT5);		// Unmask interrupts for digit buttons
+	PCMSK0 |= (1<<PCINT4) | (1<<PCINT3);					// More digit buttons
+	PCIFR = (1<<PCIF3) | (1<<PCIF0);						// Clear interrupt flags
 }
 
 void delay_ms(unsigned int delay) {
