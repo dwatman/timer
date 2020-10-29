@@ -1,3 +1,5 @@
+#include <stdio.h>		// For sprintf
+#include <string.h>		// For strlen
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -58,8 +60,11 @@ extern digit_t hr01, chm, min10, min01, cms, sec10, sec01;
 
 timer_t count_time;	// ? volatile
 
-volatile uint16_t time_ms;	// For general timing
-volatile uint8_t flg;		// General purpose flags
+spi_buf_t spi_buf;		// Buffer for queueing SPI data
+uart_buf_t uart_buf;	// Buffer for queueing UART data
+
+volatile uint16_t time_ms;		// For general timing
+volatile uint8_t flg;			// General purpose flags
 volatile enum state_e state;	// Operating state
 
 int main(void) {
@@ -82,11 +87,27 @@ int main(void) {
 	SPCR = (1<<SPE) | (1<<MSTR);	// /4 prescaler (2 MHz), master mode
 	SPSR = (1<<SPI2X);				// 2x speed (4 MHz)
 
+	// USART SETUP
+	UCSR0B = (1<<TXEN0);				// Enable USART transmitter
+	UCSR0A = (1<<U2X0);					// Use 2x transmission mode
+	UBRR0 = 25;							// Approx 38400 (+0.16%)
+	UCSR0C = (1<<UCSZ01) | (1<<UCSZ00);	// 8 data bits, 1 stop bit, no parity
+
 	// Initial state
 	PORTB |= CS_MASK;		// CS high
 	//PORTC |= MOFF_MASK;	// Disable microphone
 
 	timer_clear(&count_time);	// Clear timer count
+
+	// Clear SPI buffer
+	spi_buf.data[0] = 0;
+	spi_buf.next = 1;
+	spi_buf.last = 0;
+
+	// Clear UART buffer
+	uart_buf.data[0] = 0;
+	uart_buf.next = 1;
+	uart_buf.last = 0;
 
 	init_digits();
 
@@ -103,6 +124,13 @@ int main(void) {
 	ep_update_display();	// Update display (full refresh)
 	ep_set_all_white();		// Clear second display buffer
 	ep_deepsleep();			// Enter deep sleep mode
+
+	sprintf(uart_buf.data, "test %u\n", 7);
+	cli();	// Disable interrupts
+	uart_buf.next = 0;
+	uart_buf.last = strlen(uart_buf.data) - 1;
+	sei();	// Enable interrupts
+	UCSR0B |= (1<<UDRIE0);	// Enable interrupt on Data Register Empty (will happen immediately)
 
 	while (1) {
 		if (flg & FLG_UPD) {
@@ -194,4 +222,24 @@ ISR(PCINT3_vect) {
 	flg |= FLG_UPD;		// Set flag to update display
 
 	PORTC ^= LED_MASK;
+}
+
+// SPI Serial Transfer Complete
+ISR(SPI_STC_vect) {
+
+
+
+}
+
+// USART0 Data Register Empty
+ISR(USART0_UDRE_vect) {
+	// Send the next byte
+	if (uart_buf.next <= uart_buf.last) {
+		UDR0 = uart_buf.data[uart_buf.next];
+		uart_buf.next++;
+	}
+
+	// Disable this interrupt after last byte is loaded
+	if (uart_buf.next > uart_buf.last)
+		UCSR0B &= ~(1<<UDRIE0);	// Disable interrupt on Data Register Empty
 }
