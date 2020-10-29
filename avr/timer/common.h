@@ -63,12 +63,12 @@
 #define FLG_UPD	0x01
 
 typedef struct {
-	unsigned char type;
-	unsigned char x_start;
-	unsigned char x_end;
-	unsigned int y_start;
-	unsigned int y_end;
-	unsigned int num_bytes;
+	uint8_t type;
+	uint8_t x_start;
+	uint8_t x_end;
+	uint16_t y_start;
+	uint16_t y_end;
+	uint16_t num_bytes;
 } digit_t;
 
 enum state_e {
@@ -79,6 +79,6 @@ enum state_e {
 
 void init_pins(void);
 void init_pin_interrupts(void);
-void delay_ms(unsigned int delay);
+void delay_ms(uint16_t delay);
 
 #endif

@@ -1,7 +1,7 @@
 #include <avr/io.h>
 #include "common.h"
 
-extern volatile unsigned int time_ms;
+extern volatile uint16_t time_ms;
 
 void init_pins(void) {
 	DDRA |= MBLANK_MASK;	// Set pin to output for MIC_BLANK
@@ -47,8 +47,8 @@ void init_pin_interrupts(void) {
 	PCIFR = (1<<PCIF3) | (1<<PCIF0);						// Clear interrupt flags
 }
 
-void delay_ms(unsigned int delay) {
-	unsigned int now, end;
+void delay_ms(uint16_t delay) {
+	uint16_t now, end;
 
 	now = time_ms;
 	if (TCNT1 >= 500) now++;	// delay another ms if count is past halfway

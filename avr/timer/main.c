@@ -58,8 +58,8 @@ extern digit_t hr01, chm, min10, min01, cms, sec10, sec01;
 
 timer_t count_time;	// ? volatile
 
-volatile unsigned int time_ms;	// For general timing
-volatile unsigned char flg;		// General purpose flags
+volatile uint16_t time_ms;	// For general timing
+volatile uint8_t flg;		// General purpose flags
 volatile enum state_e state;	// Operating state
 
 int main(void) {
@@ -150,7 +150,7 @@ ISR(INT1_vect) {
 
 // Pin Change Interrupt Request 0 (digit buttons)
 ISR(PCINT0_vect) {
-	unsigned char buttons;
+	uint8_t buttons;
 
 	buttons = PINA;				// Read button inputs
 	buttons = buttons ^ 0xFF;	// Invert as buttons are active low
@@ -177,7 +177,7 @@ ISR(PCINT1_vect) {
 
 // Pin Change Interrupt Request 3 (memory buttons)
 ISR(PCINT3_vect) {
-	unsigned char buttons;
+	uint8_t buttons;
 
 	buttons = PIND;				// Read button inputs
 	buttons = buttons ^ 0xFF;	// Invert as buttons are active low

@@ -55,22 +55,22 @@ out(1,:, n)
 filename = "data_nums_large.h";
 fid = fopen(filename, "w");
 
-fprintf(fid, "#define NUM_BIG_XSIZE \t%d\n", num_height/8);
-fprintf(fid, "#define NUM_BIG_YSIZE \t%d\n", num_width);
-fprintf(fid, "\n");
+fprintf(fid, "#define NUM_BIG_XSIZE \t%d\r\n", num_height/8);
+fprintf(fid, "#define NUM_BIG_YSIZE \t%d\r\n", num_width);
+fprintf(fid, "\r\n");
 
 for n = 1:10
-  fprintf(fid, "// Large digit %d (%dx%d)\n", n-1, num_width, num_height);
-  fprintf(fid, "const unsigned char num_big_%d[] PROGMEM = {\n", n-1);
+  fprintf(fid, "// Large digit %d (%dx%d)\r\n", n-1, num_width, num_height);
+  fprintf(fid, "const uint8_t num_big_%d[] PROGMEM = {\r\n", n-1);
   for j = 1:num_width
     for i = 1:num_height/8
       if (i == 1) fprintf(fid, "\t"); endif;
       fprintf(fid, "0x%02X", out(j, i, n));
       if (i == num_height/8) % end of row
         if (j == num_width) % last data in number
-          fprintf(fid, "\n};\n");
+          fprintf(fid, "\r\n};\r\n");
         else
-          fprintf(fid, ",\n");
+          fprintf(fid, ",\r\n");
         endif
       else
         fprintf(fid, ", ");
@@ -79,7 +79,7 @@ for n = 1:10
   endfor
 
   if (n != 10) % not last number
-    fprintf(fid, "\n");
+    fprintf(fid, "\r\n");
   endif
 
 endfor

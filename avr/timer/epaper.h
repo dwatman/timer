@@ -26,7 +26,7 @@ void init_digits(void);
 void ep_init_hw(void);
 void ep_init_part(void);
 void ep_set_all_white(void);
-void ep_set_num(digit_t *digit, unsigned char val);
+void ep_set_num(digit_t *digit, uint8_t val);
 void ep_update_display(void);
 void ep_update_display_partial(void);
 void ep_deepsleep(void);

@@ -6,11 +6,11 @@
 #define EEPROM_MEM3_ADDR	0x0010	// Start address of MEM3 data (5 bytes)
 
 typedef struct {
-	unsigned char hr01;
-	unsigned char min10;
-	unsigned char min01;
-	unsigned char sec10;
-	unsigned char sec01;
+	uint8_t hr01;
+	uint8_t min10;
+	uint8_t min01;
+	uint8_t sec10;
+	uint8_t sec01;
 } timer_t;
 
 void timer_clear(timer_t *timer);

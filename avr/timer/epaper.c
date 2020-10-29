@@ -9,14 +9,14 @@
 #include "data_nums_large.h"
 
 //C221 25C Full update waveform
-const unsigned char LUT_DATA_full[30] PROGMEM = {
+const uint8_t LUT_DATA_full[30] PROGMEM = {
 	0x50, 0xAA, 0x55, 0xAA, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0xFF, 0xFF, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
 //C221 25C partial update waveform
-const unsigned char LUT_DATA_part[30] PROGMEM = {
+const uint8_t LUT_DATA_part[30] PROGMEM = {
 	0x10, 0x18, 0x18, 0x08, 0x18, 0x18, 0x08, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x13, 0x14, 0x44, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
@@ -76,12 +76,12 @@ void init_digits(void) {
 }
 
 void ep_SPIdelay(void) {
-	unsigned char i;
+	uint8_t i;
 	i = 0;
 	i++;
 }
 
-void ep_write_cmd(unsigned char cmd) {
+void ep_write_cmd(uint8_t cmd) {
 	//ep_SPIdelay();	// wait a bit?
 
 	PORTB &= ~CS_MASK;	// CS# select
@@ -93,7 +93,7 @@ void ep_write_cmd(unsigned char cmd) {
 	PORTB |= CS_MASK; // CS# deselect
 }
 
-void ep_write_data(unsigned char data) {
+void ep_write_data(uint8_t data) {
 	//ep_SPIdelay();	// wait a bit?
 
 	PORTB &= ~CS_MASK;	// CS# select
@@ -105,15 +105,15 @@ void ep_write_data(unsigned char data) {
 	PORTB |= CS_MASK; // CS# deselect
 }
 
-unsigned char ep_check_busy(void) {
+uint8_t ep_check_busy(void) {
 	if (PINB & BUSY_MASK)
 		return 1;
 	else
 		return 0;
 }
 
-void ep_set_LUT(const unsigned char *data) {
-	unsigned char i;
+void ep_set_LUT(const uint8_t *data) {
+	uint8_t i;
 
 	ep_write_cmd(0x32);		// Write LUT register
 
@@ -175,7 +175,6 @@ void ep_init_hw(void) {
 }
 
 void ep_init_part(void) {
-
 	ep_init_hw(); // needed?????
 	ep_set_LUT(LUT_DATA_part);	// Set partial update waveform
 	ep_write_cmd(0x4F);		// Set RAM y address counter
@@ -193,7 +192,7 @@ void ep_init_part(void) {
 }
 
 void ep_set_all_white(void) {
-	unsigned int i;
+	uint16_t i;
 
 	ep_write_cmd(0x24);		// Write RAM
 
@@ -201,15 +200,15 @@ void ep_set_all_white(void) {
 		ep_write_data(0xFF);	// all white
 }
 
-void ep_set_num(digit_t *digit, unsigned char val) {
-	unsigned int i;
-	unsigned char x_start = digit->x_start;
-	unsigned char x_end = digit->x_end;
-	unsigned char y_startL = digit->y_start&0xFF;
-	unsigned char y_startH = (digit->y_start>>8)&0xFF;
-	unsigned char y_endL = digit->y_end&0xFF;
-	unsigned char y_endH = (digit->y_end>>8)&0xFF;
-	const unsigned char *data;
+void ep_set_num(digit_t *digit, uint8_t val) {
+	uint16_t i;
+	uint8_t x_start = digit->x_start;
+	uint8_t x_end = digit->x_end;
+	uint8_t y_startL = digit->y_start&0xFF;
+	uint8_t y_startH = (digit->y_start>>8)&0xFF;
+	uint8_t y_endL = digit->y_end&0xFF;
+	uint8_t y_endH = (digit->y_end>>8)&0xFF;
+	const uint8_t *data;
 
 	ep_write_cmd(0x44);		// Set RAM X address start/end position
 	ep_write_data(x_start);	// start
