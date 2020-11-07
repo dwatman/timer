@@ -1,6 +1,11 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
+// Adjustable parameters
+#define DEBOUNCE_TIMEOUT	110		// (ms) Ignore all buttons for a short time after each press (long for display update time?)
+#define MEM_LONG_PRESS		1000	// (ms) Hold time for memory buttons to activate edit mode
+#define HMS_LONG_PRESS		500		// (ms) Hold time for hour/minute/second buttons to activate fast counting
+
 // PORTA pin definitions
 #define MBLANK_PIN	2
 #define SEC01_PIN	3
