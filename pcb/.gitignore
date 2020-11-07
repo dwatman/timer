@@ -1,0 +1,12 @@
+# Auto generated files
+__Previews/
+History/
+
+# Output files
+Project Outputs*/
+
+# Log files
+Project Logs*/
+
+# Structure files
+*.*Structure
