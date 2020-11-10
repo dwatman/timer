@@ -67,6 +67,16 @@
 // Main loop flags
 #define FLG_UPD	0x01
 
+// Bit masks for tracking which parts of the display have need updating
+#define BIT_S01	0x01
+#define BIT_S10	0x02
+#define BIT_M01	0x04
+#define BIT_M10	0x08
+#define BIT_H01	0x10
+#define BIT_CMS	0x20
+#define BIT_CHM	0x40
+#define BIT_WHI	0x80
+
 #define SPI_BUF_SIZE	64
 #define UART_BUF_SIZE	64
 
@@ -99,6 +109,22 @@ enum state_e {
 	STATE_IDLE_SLEEP,	// Not in use, minimise power
 	STATE_STOPPED,		// In use but not counting (time being set etc)
 	STATE_ACTIVE		// In use, counting
+};
+
+// EPD state
+enum epd_state_e {
+	EPD_STATE_DSLEEP,	// Deep sleep mode, minimise power
+	EPD_STATE_INIT,		// Initialising
+	EPD_STATE_IDLE,		// Ready for commands
+	EPD_STATE_ACTIVE,	// Transfer(s) in progress
+	EPD_STATE_BUSY		// Busy internally (eg refreshing display)
+};
+
+// SPI state
+enum spi_state_e {
+	SPI_STATE_IDLE,		// Ready, no transfer in progress
+	SPI_STATE_ACTIVE,	// Transfer(s) in progress
+	SPI_STATE_DONE		// All queued transfers complete
 };
 
 void init_pins(void);

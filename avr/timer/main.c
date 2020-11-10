@@ -68,6 +68,10 @@ volatile uint8_t flg;			// General purpose flags
 volatile enum state_e state;	// Operating state
 
 volatile uint8_t btn_debounce;	// Counter for debounce delay
+volatile uint16_t btn_hold_ms;	// How long a button has been held for
+
+volatile uint8_t upd_flg;	// Indicates which areas of the display need updating
+volatile uint8_t upd_flg2;	// For the other image buffer in the display
 
 int main(void) {
 	init_pins();			// Pin setup (direction and pullups)
@@ -118,6 +122,10 @@ int main(void) {
 	state = STATE_STOPPED;
 
 	btn_debounce = 0;
+	btn_hold_ms = 0;
+
+	upd_flg = 0xFF;		// All areas need updating
+	upd_flg2 = 0xFF;	// Both buffers
 
 	sei();		// Enable interrupts
 
@@ -156,7 +164,7 @@ int main(void) {
 // Timer/Counter1 Compare Match A
 ISR(TIMER1_COMPA_vect) {
 	time_ms++;
-		
+
 	if (btn_debounce > 0) btn_debounce--;	// Decrement debounce counter if active
 
 	//if (time_ms%1000 == 0) flg |= FLAG_1S;
@@ -243,8 +251,9 @@ ISR(PCINT3_vect) {
 // SPI Serial Transfer Complete
 ISR(SPI_STC_vect) {
 
+//if (next <= last)?
 
-
+	SPCR &= ~(1<<SPIE);	// Disable interrupt for now
 }
 
 // USART0 Data Register Empty
