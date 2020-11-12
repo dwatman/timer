@@ -108,6 +108,12 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="buffers.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="buffers.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="common.c">
       <SubType>compile</SubType>
     </Compile>

@@ -77,24 +77,8 @@
 #define BIT_CHM	0x40
 #define BIT_WHI	0x80
 
-#define SPI_BUF_SIZE	64
-#define UART_BUF_SIZE	64
-
 #define SPI_TYPE_CMD	0
 #define SPI_TYPE_DATA	1
-
-typedef struct {
-	uint8_t type[SPI_BUF_SIZE];	// Command(0)/Data(1) for each byte in the buffer
-	uint8_t data[SPI_BUF_SIZE];	// Buffer for queueing multiple bytes
-	volatile uint8_t next;		// Next byte to send
-	uint8_t last;				// Last byte to send
-} spi_buf_t;
-
-typedef struct {
-	char data[SPI_BUF_SIZE];	// Buffer for queueing multiple bytes
-	volatile uint8_t next;		// Next byte to send
-	uint8_t last;				// Last byte to send
-} uart_buf_t;
 
 typedef struct {
 	uint8_t type;
@@ -122,9 +106,18 @@ enum epd_state_e {
 
 // SPI state
 enum spi_state_e {
+	SPI_STATE_OFF,		// Disabled for lower power
 	SPI_STATE_IDLE,		// Ready, no transfer in progress
-	SPI_STATE_ACTIVE,	// Transfer(s) in progress
-	SPI_STATE_DONE		// All queued transfers complete
+	SPI_STATE_ACTIVE	// Transfer(s) in progress
+	//SPI_STATE_DONE		// All queued transfers complete
+};
+
+// UART state
+enum uart_state_e {
+	UART_STATE_OFF,		// Disabled for lower power
+	UART_STATE_IDLE,	// Ready, no transfer in progress
+	UART_STATE_ACTIVE	// Transfer(s) in progress
+	//UART_STATE_DONE		// All queued transfers complete
 };
 
 void init_pins(void);

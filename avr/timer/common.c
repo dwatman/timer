@@ -3,9 +3,6 @@
 
 extern volatile uint16_t time_ms;
 
-extern spi_buf_t spi_buf;	// Buffer for queueing SPI data
-extern uart_buf_t uart_buf;	// Buffer for queueing UART data
-
 void init_pins(void) {
 	DDRA |= MBLANK_MASK;	// Set pin to output for MIC_BLANK
 
@@ -61,15 +58,3 @@ void delay_ms(uint16_t delay) {
 	while (time_ms != end);		// wait until the end time is reached
 }
 
-void spi_add_buf(uint8_t data, uint8_t type) {
-	if (spi_buf.last >= (SPI_BUF_SIZE-1))
-		return;	// Don't overrun buffer
-
-	//cli();	// Disable interrupts
-	spi_buf.type[spi_buf.last] = type;	// Set type
-	spi_buf.data[spi_buf.last] = data;	// Add data to buffer
-	spi_buf.last++;
-	//sei();	// Enable interrupts
-
-	SPCR |= (1<<SPIE);	// Enable interrupt
-}

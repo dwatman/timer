@@ -6,6 +6,7 @@
 #include "common.h"
 #include "epaper.h"
 #include "timer_funcs.h"
+#include "buffers.h"
 
 /*
 Pin usage:
@@ -60,8 +61,11 @@ extern digit_t hr01, chm, min10, min01, cms, sec10, sec01;
 
 timer_t count_time;	// ? volatile
 
-spi_buf_t spi_buf;		// Buffer for queueing SPI data
-uart_buf_t uart_buf;	// Buffer for queueing UART data
+circ_buf_spi buf_spi;			// Buffer for queueing SPI data
+volatile enum spi_state_e spi_state;	// State of SPI transfers
+
+circ_buf_uart buf_uart;		// Buffer for queueing UART data
+volatile enum uart_state_e uart_state;	// State of UART transfers
 
 volatile uint16_t time_ms;		// For general timing
 volatile uint8_t flg;			// General purpose flags
@@ -106,14 +110,14 @@ int main(void) {
 	timer_clear(&count_time);	// Clear timer count
 
 	// Clear SPI buffer
-	spi_buf.data[0] = 0;
-	spi_buf.next = 1;
-	spi_buf.last = 0;
+	buf_spi.head = 0;
+	buf_spi.tail = SPI_BUF_SIZE - 1;
+	spi_state = SPI_STATE_IDLE;
 
 	// Clear UART buffer
-	uart_buf.data[0] = 0;
-	uart_buf.next = 1;
-	uart_buf.last = 0;
+	buf_uart.head = 0;
+	buf_uart.tail = UART_BUF_SIZE - 1;
+	uart_state = UART_STATE_IDLE;
 
 	init_digits();
 
@@ -136,13 +140,6 @@ int main(void) {
 	ep_update_display();	// Update display (full refresh)
 	ep_set_all_white();		// Clear second display buffer
 	ep_deepsleep();			// Enter deep sleep mode
-
-	sprintf(uart_buf.data, "test %u\n", 7);
-	cli();	// Disable interrupts
-	uart_buf.next = 0;
-	uart_buf.last = strlen(uart_buf.data) - 1;
-	sei();	// Enable interrupts
-	UCSR0B |= (1<<UDRIE0);	// Enable interrupt on Data Register Empty (will happen immediately)
 
 	while (1) {
 		if (flg & FLG_UPD) {
@@ -258,13 +255,11 @@ ISR(SPI_STC_vect) {
 
 // USART0 Data Register Empty
 ISR(USART0_UDRE_vect) {
-	// Send the next byte
-	if (uart_buf.next <= uart_buf.last) {
-		UDR0 = uart_buf.data[uart_buf.next];
-		uart_buf.next++;
+	if (inbuf_uart(&buf_uart) > 0) {
+		UDR0 = getbuf_uart(&buf_uart);	// Send the next byte if available
 	}
-
-	// Disable this interrupt after last byte is loaded
-	if (uart_buf.next > uart_buf.last)
-		UCSR0B &= ~(1<<UDRIE0);	// Disable interrupt on Data Register Empty
+	else {
+		UCSR0B &= ~(1<<UDRIE0);			// Disable this interrupt when buffer is empty
+		uart_state = UART_STATE_IDLE;
+	}
 }
