@@ -3,20 +3,20 @@
 #include "common.h"
 #include "buffers.h"
 
-circ_buf_spi buf_spi;
-circ_buf_uart buf_uart;
+circ_buf_spi spi_buf;
+circ_buf_uart uart_buf;
 
 extern volatile enum spi_state_e spi_state;		// State of SPI transfers
 extern volatile enum uart_state_e uart_state;	// State of UART transfers
 
 // Report how many bytes are in the UART buffer
-uint16_t inbuf_uart(circ_buf_uart *buf) {
+inline uint16_t inbuf_uart(circ_buf_uart *buf) {
 	return (buf->head - buf->tail) & (UART_BUF_SIZE-1);	// Wrap to buffer limits
 }
 
 // Write 1 byte to the UART buffer
 uint8_t tobuf_uart(circ_buf_uart *buf, char data) {
-	if (buf->head == buf->tail)	// Buffer full
+	if (inbuf_uart(buf) == UART_BUF_SIZE-1)	// Buffer full
 		return 0;	// No data written
 
 	buf->data[buf->head++] = data;	// Add to buffer
@@ -47,14 +47,14 @@ void uart_add_buf(char *data, uint8_t length) {
 	//}
 
 	for (i=0; i<length; i++) {
-		n = tobuf_uart(&buf_uart, data[i]);	// Add to buffer
+		n = tobuf_uart(&uart_buf, data[i]);	// Add to buffer
 		if (n == 0) break;					// Exit loop if buffer is full
 	}
 	uart_state = UART_STATE_ACTIVE;
 
-	sei();	// Enable interrupts
+	UCSR0B |= (1<<UDRIE0);	// Enable interrupt on Data Register Empty (will happen immediately if idle)
 
-	// UCSR0B |= (1<<UDRIE0);	// Enable interrupt on Data Register Empty (will happen immediately if idle)
+	sei();	// Enable interrupts
 
 }
 

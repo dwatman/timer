@@ -61,10 +61,11 @@ extern digit_t hr01, chm, min10, min01, cms, sec10, sec01;
 
 timer_t count_time;	// ? volatile
 
-circ_buf_spi buf_spi;			// Buffer for queueing SPI data
+circ_buf_spi spi_buf;					// Buffer for queueing SPI data
 volatile enum spi_state_e spi_state;	// State of SPI transfers
 
-circ_buf_uart buf_uart;		// Buffer for queueing UART data
+char uart_tmp[64];						// Temporary buffer for writing strings before adding to buffer
+circ_buf_uart uart_buf;					// Buffer for queueing UART data
 volatile enum uart_state_e uart_state;	// State of UART transfers
 
 volatile uint16_t time_ms;		// For general timing
@@ -110,13 +111,13 @@ int main(void) {
 	timer_clear(&count_time);	// Clear timer count
 
 	// Clear SPI buffer
-	buf_spi.head = 0;
-	buf_spi.tail = SPI_BUF_SIZE - 1;
+	spi_buf.head = 0;
+	spi_buf.tail = 0;
 	spi_state = SPI_STATE_IDLE;
 
 	// Clear UART buffer
-	buf_uart.head = 0;
-	buf_uart.tail = UART_BUF_SIZE - 1;
+	uart_buf.head = 0;
+	uart_buf.tail = 0;
 	uart_state = UART_STATE_IDLE;
 
 	init_digits();
@@ -140,6 +141,9 @@ int main(void) {
 	ep_update_display();	// Update display (full refresh)
 	ep_set_all_white();		// Clear second display buffer
 	ep_deepsleep();			// Enter deep sleep mode
+
+	sprintf(uart_tmp, "\nmain loop start\n");
+	uart_add_buf(uart_tmp, strlen(uart_tmp));
 
 	while (1) {
 		if (flg & FLG_UPD) {
@@ -255,8 +259,8 @@ ISR(SPI_STC_vect) {
 
 // USART0 Data Register Empty
 ISR(USART0_UDRE_vect) {
-	if (inbuf_uart(&buf_uart) > 0) {
-		UDR0 = getbuf_uart(&buf_uart);	// Send the next byte if available
+	if (inbuf_uart(&uart_buf) > 0) {
+		UDR0 = getbuf_uart(&uart_buf);	// Send the next byte if available
 	}
 	else {
 		UCSR0B &= ~(1<<UDRIE0);			// Disable this interrupt when buffer is empty

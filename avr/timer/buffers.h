@@ -1,8 +1,8 @@
 #ifndef BUFFERS_H_
 #define BUFFERS_H_
 
-#define SPI_BUF_SIZE	256	// (power of 2, max 256)
-#define UART_BUF_SIZE	256	// (power of 2, max 256)
+#define SPI_BUF_SIZE	256	// (power of 2, max 32768)
+#define UART_BUF_SIZE	256	// (power of 2, max 32768)
 
 typedef struct {
 	volatile uint16_t head;	// Next FREE spot
