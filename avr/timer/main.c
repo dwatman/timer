@@ -145,6 +145,9 @@ int main(void) {
 	sprintf(uart_tmp, "\nmain loop start\n");
 	uart_add_buf(uart_tmp, strlen(uart_tmp));
 
+	sprintf(uart_tmp, "bat state %u\n", check_lowbat());
+	uart_add_buf(uart_tmp, strlen(uart_tmp));
+
 	while (1) {
 		if (flg & FLG_UPD) {
 			ep_init_part();		// Initialise display for partial refresh

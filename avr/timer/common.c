@@ -47,6 +47,13 @@ void init_pin_interrupts(void) {
 	PCIFR = (1<<PCIF3) | (1<<PCIF0);						// Clear interrupt flags
 }
 
+uint8_t check_lowbat(void) {
+	if (PINB & LOWBAT_MASK)
+		return 1;
+	else
+		return 0;
+}
+
 void delay_ms(uint16_t delay) {
 	uint16_t now, end;
 

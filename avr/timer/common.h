@@ -122,6 +122,7 @@ enum uart_state_e {
 
 void init_pins(void);
 void init_pin_interrupts(void);
+uint8_t check_lowbat(void);
 void delay_ms(uint16_t delay);
 
 #endif
