@@ -265,8 +265,8 @@ ISR(USART0_UDRE_vect) {
 	if (inbuf_uart(&uart_buf) > 0) {
 		UDR0 = getbuf_uart(&uart_buf);	// Send the next byte if available
 	}
-	else {
-		UCSR0B &= ~(1<<UDRIE0);			// Disable this interrupt when buffer is empty
+	else {							// Buffer is empty
+		UCSR0B &= ~(1<<UDRIE0);			// Disable this interrupt
 		uart_state = UART_STATE_IDLE;
 	}
 }
