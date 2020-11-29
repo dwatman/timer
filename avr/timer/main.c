@@ -215,11 +215,11 @@ ISR(PCINT0_vect) {
 	buttons = buttons & (SEC01_MASK | SEC10_MASK | MIN01_MASK | MIN10_MASK | HR_MASK);	// Mask for button pins
 
 	switch (buttons) {
-		case SEC01_MASK: count_time.sec01++; timer_check_digits(&count_time); break;
-		case SEC10_MASK: count_time.sec10++; timer_check_digits(&count_time); break;
-		case MIN01_MASK: count_time.min01++; timer_check_digits(&count_time); break;
-		case MIN10_MASK: count_time.min10++; timer_check_digits(&count_time); break;
-		case HR_MASK:    count_time.hr01++;  timer_check_digits(&count_time); break;
+		case SEC01_MASK: timer_inc_sec01(&count_time); break;
+		case SEC10_MASK: timer_inc_sec10(&count_time); break;
+		case MIN01_MASK: timer_inc_min01(&count_time); break;
+		case MIN10_MASK: timer_inc_min10(&count_time); break;
+		case HR_MASK:    timer_inc_hr01(&count_time); break;
 		default: return;	// Do nothing if no buttons or multiple buttons are pressed (includes button release edges)
 	}
 

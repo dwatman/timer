@@ -14,12 +14,19 @@ typedef struct {
 } timer_t;
 
 void timer_clear(timer_t *timer);
+void timer_inc_sec01(timer_t *timer);
+void timer_inc_sec10(timer_t *timer);
+void timer_inc_min01(timer_t *timer);
+void timer_inc_min10(timer_t *timer);
+void timer_inc_hr01(timer_t *timer);
+
+uint8_t timer_count_down(timer_t *timer);
+
 void timer_read_mem1(timer_t *timer);
 void timer_read_mem2(timer_t *timer);
 void timer_read_mem3(timer_t *timer);
 void timer_write_mem1(timer_t *timer);
 void timer_write_mem2(timer_t *timer);
 void timer_write_mem3(timer_t *timer);
-void timer_check_digits(timer_t *timer);
 
 #endif
