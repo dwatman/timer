@@ -74,8 +74,9 @@ volatile enum state_e state;	// Operating state
 volatile uint8_t btn_debounce;	// Counter for debounce delay
 volatile uint16_t btn_hold_ms;	// How long a button has been held for
 
-volatile uint8_t upd_flg;	// Indicates which areas of the display need updating
-volatile uint8_t upd_flg2;	// For the other image buffer in the display
+volatile uint8_t ep_upd_flg;	// Indicates which areas of the display need updating
+volatile uint8_t ep_upd_flg2;	// For the other image buffer in the display
+
 
 int main(void) {
 	init_pins();			// Pin setup (direction and pullups)
@@ -126,8 +127,8 @@ int main(void) {
 	btn_debounce = 0;
 	btn_hold_ms = 0;
 
-	upd_flg = 0xFF;		// All areas need updating
-	upd_flg2 = 0xFF;	// Both buffers
+	ep_upd_flg = EPD_UPD_ALL;		// All areas need updating
+	ep_upd_flg2 = EPD_UPD_ALL;		// Both buffers
 
 	sei();		// Enable interrupts
 

@@ -67,15 +67,18 @@
 // Main loop flags
 #define FLG_UPD	0x01
 
-// Bit masks for tracking which parts of the display have need updating
-#define BIT_S01	0x01
-#define BIT_S10	0x02
-#define BIT_M01	0x04
-#define BIT_M10	0x08
-#define BIT_H01	0x10
-#define BIT_CMS	0x20
-#define BIT_CHM	0x40
-#define BIT_WHI	0x80
+// Bit masks for tracking which parts of the display need updating
+#define EPD_UPD_S01	0x01	// Seconds 1 digit
+#define EPD_UPD_S10	0x02	// Seconds 10 digit
+#define EPD_UPD_M01	0x04	// Minutes 1 digit
+#define EPD_UPD_M10	0x08	// Minutes 10 digit
+#define EPD_UPD_H01	0x10	// Hours 1 digit
+#define EPD_UPD_CMS	0x20	// Colon between minutes and seconds
+#define EPD_UPD_CHM	0x40	// Colon between hours and minutes
+#define EPD_UPD_WHI	0x80	// White background
+//#define EPD_UPD_BAT	0x	// Low battery indication
+//#define EPD_UPD_END	0x	// Alarm end
+#define EPD_UPD_ALL	0xFF	// All parts of the display
 
 #define SPI_TYPE_CMD	0
 #define SPI_TYPE_DATA	1
@@ -92,7 +95,12 @@ typedef struct {
 enum state_e {
 	STATE_IDLE_SLEEP,	// Not in use, minimise power
 	STATE_STOPPED,		// In use but not counting (time being set etc)
-	STATE_ACTIVE		// In use, counting
+	STATE_SET_MEM1,		// Setting MEM1 time
+	STATE_SET_MEM2,		// Setting MEM2 time
+	STATE_SET_MEM3,		// Setting MEM3 time
+	STATE_ACTIVE,		// In use, counting
+	STATE_END_BEEP,		// Timer expired, making alarm noise
+	STATE_END_DONE		// Timer expired, alarm noise finished, showing end display
 };
 
 // EPD state
