@@ -1,15 +1,7 @@
 #ifndef BUFFERS_H_
 #define BUFFERS_H_
 
-#define SPI_BUF_SIZE	256	// (power of 2, max 32768)
 #define UART_BUF_SIZE	256	// (power of 2, max 32768)
-
-typedef struct {
-	volatile uint16_t head;	// Next FREE spot
-	volatile uint16_t tail;	// Oldest DATA
-	uint8_t type[SPI_BUF_SIZE];
-	uint8_t data[SPI_BUF_SIZE];
-} circ_buf_spi;
 
 typedef struct {
 	volatile uint16_t head;	// Next FREE spot

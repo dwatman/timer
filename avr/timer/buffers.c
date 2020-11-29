@@ -4,10 +4,8 @@
 #include "common.h"
 #include "buffers.h"
 
-circ_buf_spi spi_buf;
 circ_buf_uart uart_buf;
 
-extern volatile enum spi_state_e spi_state;		// State of SPI transfers
 extern volatile enum uart_state_e uart_state;	// State of UART transfers
 
 // Report how many bytes are in the UART buffer
@@ -61,18 +59,3 @@ void uart_add_buf(char *data, uint8_t length) {
 
 	UCSR0B |= (1<<UDRIE0);	// Enable interrupt on Data Register Empty (will happen immediately if idle)
 }
-
-/*
-void spi_add_buf(uint8_t data, uint8_t type) {
-	if (spi_buf.last >= (SPI_BUF_SIZE-1))
-		return;	// Don't overrun buffer
-
-	//cli();	// Disable interrupts
-	spi_buf.type[spi_buf.last] = type;	// Set type
-	spi_buf.data[spi_buf.last] = data;	// Add data to buffer
-	spi_buf.last++;
-	//sei();	// Enable interrupts
-
-	SPCR |= (1<<SPIE);	// Enable interrupt
-}
-*/

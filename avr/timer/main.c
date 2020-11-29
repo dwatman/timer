@@ -61,7 +61,6 @@ extern digit_t hr01, chm, min10, min01, cms, sec10, sec01;
 
 timer_t count_time;	// ? volatile
 
-circ_buf_spi spi_buf;					// Buffer for queueing SPI data
 volatile enum spi_state_e spi_state;	// State of SPI transfers
 
 char uart_tmp[64];						// Temporary buffer for writing strings before adding to buffer
@@ -105,14 +104,12 @@ int main(void) {
 	UCSR0C = (1<<UCSZ01) | (1<<UCSZ00);	// 8 data bits, 1 stop bit, no parity
 
 	// Initial state
-	PORTB |= CS_MASK;		// CS high
 	//PORTC |= MOFF_MASK;	// Disable microphone
 
 	timer_clear(&count_time);	// Clear timer count
 
-	// Clear SPI buffer
-	spi_buf.head = 0;
-	spi_buf.tail = 0;
+	// Set SPI state
+	PORTB |= CS_MASK;		// CS high
 	spi_state = SPI_STATE_IDLE;
 
 	// Clear UART buffer
@@ -158,6 +155,7 @@ int main(void) {
 			ep_set_num(&min10, count_time.min10);
 			ep_set_num(&hr01, count_time.hr01);
 			ep_update_display_partial();	// Update display (partial refresh)
+
 			ep_deepsleep();		// Enter deep sleep mode
 
 			flg &= ~FLG_UPD;	// Clear flag
@@ -250,14 +248,6 @@ ISR(PCINT3_vect) {
 	flg |= FLG_UPD;						// Set flag to update display
 
 	//PORTC ^= LED_MASK;
-}
-
-// SPI Serial Transfer Complete
-ISR(SPI_STC_vect) {
-
-//if (next <= last)?
-
-	SPCR &= ~(1<<SPIE);	// Disable interrupt for now
 }
 
 // USART0 Data Register Empty

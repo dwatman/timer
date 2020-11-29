@@ -64,4 +64,3 @@ void delay_ms(uint16_t delay) {
 
 	while (time_ms != end);		// wait until the end time is reached
 }
-
