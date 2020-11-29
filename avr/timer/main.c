@@ -177,6 +177,17 @@ ISR(TIMER1_COMPA_vect) {
 
 // Timer/Counter2 Overflow
 ISR(TIMER2_OVF_vect) {
+	uint8_t tmp;
+	
+	if (state == STATE_ACTIVE) {
+		tmp = timer_count_down(&count_time);
+		if (tmp != 0) {
+			//state = STATE_END_BEEP;
+			state = STATE_STOPPED; // ***test***
+		}
+		flg |= FLG_UPD;		// Set flag to update display
+	}
+	
 	//PORTC ^= LED_MASK;
 }
 
@@ -185,8 +196,25 @@ ISR(INT0_vect) {
 	if (btn_debounce > 0) return;			// Ignore buttons during debounce period
 	else btn_debounce = DEBOUNCE_TIMEOUT;	// Otherwise set debounce timer
 
-	timer_clear(&count_time);	// Clear timer count
-	flg |= FLG_UPD;		// Set flag to update display
+	switch (state) {
+		case STATE_IDLE_SLEEP:
+			// Wake up
+			state = STATE_STOPPED;
+		case STATE_STOPPED:
+		case STATE_SET_MEM1:
+		case STATE_SET_MEM2:
+		case STATE_SET_MEM3:
+			timer_clear(&count_time);	// Clear timer count
+			flg |= FLG_UPD;		// Set flag to update display
+			break;
+		case STATE_ACTIVE: break;
+		case STATE_END_BEEP:
+			// Stop beeping
+		case STATE_END_DONE:
+			// Clear done indication
+			state = STATE_STOPPED;
+			break;
+	}
 
 	//PORTC ^= LED_MASK;
 }
@@ -195,6 +223,47 @@ ISR(INT0_vect) {
 ISR(INT1_vect) {
 	if (btn_debounce > 0) return;			// Ignore buttons during debounce period
 	else btn_debounce = DEBOUNCE_TIMEOUT;	// Otherwise set debounce timer
+
+	sprintf(uart_tmp, "BTN_START\n");
+	uart_add_buf(uart_tmp, strlen(uart_tmp));
+	
+	switch (state) {
+		case STATE_IDLE_SLEEP:
+			// Wake up
+			state = STATE_STOPPED;
+			break;
+		case STATE_STOPPED:
+			// Reset timer2 count
+			state = STATE_ACTIVE;
+			break;
+		case STATE_SET_MEM1:
+			timer_write_mem1(&count_time);	// Store current count in MEM1
+			// Remove MEM1 set from display
+			flg |= FLG_UPD;		// Set flag to update display
+			state = STATE_STOPPED;
+			break;
+		case STATE_SET_MEM2:
+			timer_write_mem2(&count_time);	// Store current count in MEM2
+			// Remove MEM2 set from display
+			flg |= FLG_UPD;		// Set flag to update display
+			state = STATE_STOPPED;
+			break;
+		case STATE_SET_MEM3:
+			timer_write_mem3(&count_time);	// Store current count in MEM3
+			// Remove MEM3 set from display
+			flg |= FLG_UPD;		// Set flag to update display
+			state = STATE_STOPPED;
+			break;
+		case STATE_ACTIVE:
+			state = STATE_STOPPED;
+			break;
+		case STATE_END_BEEP:
+			// Stop beeping
+		case STATE_END_DONE:
+			// Clear done indication
+			state = STATE_STOPPED;
+			break;
+	}
 
 	//PORTC ^= LED_MASK;
 }
