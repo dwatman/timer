@@ -75,13 +75,14 @@ void init_digits(void) {
 	hr01.num_bytes = NUM_BIG_XSIZE*NUM_BIG_YSIZE;
 }
 
-void ep_SPIdelay(void) {
+/*
+static void ep_SPIdelay(void) {
 	uint8_t i;
 	i = 0;
 	i++;
 }
 
-void ep_write_cmd(uint8_t cmd) {
+static void ep_write_cmd(uint8_t cmd) {
 	//ep_SPIdelay();	// wait a bit?
 
 	PORTB &= ~CS_MASK;	// CS# select
@@ -93,7 +94,7 @@ void ep_write_cmd(uint8_t cmd) {
 	PORTB |= CS_MASK; // CS# deselect
 }
 
-void ep_write_data(uint8_t data) {
+static void ep_write_data(uint8_t data) {
 	//ep_SPIdelay();	// wait a bit?
 
 	PORTB &= ~CS_MASK;	// CS# select
@@ -104,21 +105,49 @@ void ep_write_data(uint8_t data) {
 
 	PORTB |= CS_MASK; // CS# deselect
 }
+*/
 
-uint8_t ep_check_busy(void) {
+static inline void ep_cs_select(void) {
+	PORTB &= ~CS_MASK;	// CS# select
+}
+
+static inline void ep_cs_deselect(void) {
+	PORTB |= CS_MASK; // CS# deselect
+}
+
+static void ep_write_cmd(uint8_t cmd) {
+	//ep_SPIdelay();	// wait a bit?
+
+	PORTB &= ~CMD_MASK;	// CMD# mode
+
+	SPDR = cmd;					// start SPI transfer
+	while (!(SPSR & (1<<SPIF)));	// wait for transfer compete
+}
+
+static void ep_write_data(uint8_t data) {
+	PORTB |= CMD_MASK;	// DATA mode
+
+	SPDR = data;				// start SPI transfer
+	while (!(SPSR & (1<<SPIF)));	// wait for transfer compete
+}
+
+static uint8_t ep_check_busy(void) {
 	if (PINB & BUSY_MASK)
 		return 1;
 	else
 		return 0;
 }
 
-void ep_set_LUT(const uint8_t *data) {
+static void ep_set_LUT(const uint8_t *data) {
 	uint8_t i;
 
+	ep_cs_select();
 	ep_write_cmd(0x32);		// Write LUT register
 
 	for (i=0; i<30; i++)
 		ep_write_data(pgm_read_byte(&data[i]));
+
+	ep_cs_deselect();
 }
 
 void ep_init_hw(void) {
@@ -127,77 +156,108 @@ void ep_init_hw(void) {
 	PORTB |= RST_MASK;	// RST# off
 	delay_ms(15);
 
+	ep_cs_select();
 	ep_write_cmd(0x01);		// Driver output control
 	ep_write_data(0x27);	// (295+1)=296
 	ep_write_data(0x01);
 	ep_write_data(0x00);
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x0C);		// Soft start
 	ep_write_data(0xD7);
 	ep_write_data(0xD6);
 	ep_write_data(0x9D);
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x2C);		// VCOM Voltage
 	ep_write_data(0x9A);//A8????
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x3A);		// Set dummy line period
 	ep_write_data(0x1A);	// 4 dummy line per gate?
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x3B);		// Set Gate line width
 	ep_write_data(0x08);	// 2us per line?
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x11);		// Set Data Entry mode
 	ep_write_data(0x03);	// Y inc, X inc, addr count updates in X direction (default)
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x3C);		// Border waveform control
 	ep_write_data(0x33);//03???
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x44);		// Set RAM X address start/end position
 	ep_write_data(0x00);	// start = 0
 	ep_write_data(0x0F);	// end = 15
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x45);		// Set RAM Y address start/end position
 	ep_write_data(0x00);	// start = 0
 	ep_write_data(0x00);	// (high bit)
 	ep_write_data(0x27);	// end = 295
 	ep_write_data(0x01);	// (high bit)
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x4E);		// Set RAM x address counter
 	ep_write_data(0x00);	// x = 0
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x4F);		// Set RAM y address counter
 	ep_write_data(0x00);	// y = 0
 	ep_write_data(0x00);	// (high bit)
+	ep_cs_deselect();
 
 	while (ep_check_busy());	// Wait until operations are complete
 
-	ep_set_LUT(LUT_DATA_full);	// Set full update waveform
+	ep_set_LUT(LUT_DATA_full);	// Set full update waveform (move out of init_part??)
 }
 
 void ep_init_part(void) {
 	ep_init_hw(); // needed?????
 	ep_set_LUT(LUT_DATA_part);	// Set partial update waveform
-	ep_write_cmd(0x4F);		// Set RAM y address counter
+	//??? ep_write_cmd(0x4F);		// Set RAM y address counter
 
 	// power on
+	ep_cs_select();
 	ep_write_cmd(0x22);		// Display update control 2
 	ep_write_data(0xC0);
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x20);		// Activate display update sequence
+	ep_cs_deselect();
 
 	while (ep_check_busy());	// Wait until operations are complete
 
+	ep_cs_select();
 	ep_write_cmd(0x3C);		// Border waveform control
 	ep_write_data(0x01);
+	ep_cs_deselect();
 }
 
 void ep_set_all_white(void) {
 	uint16_t i;
 
+	ep_cs_select();
 	ep_write_cmd(0x24);		// Write RAM
 
 	for (i=0; i<EP_TOTAL_BYTES; i++)
 		ep_write_data(0xFF);	// all white
+
+	ep_cs_deselect();
 }
 
 void ep_set_num(digit_t *digit, uint8_t val) {
@@ -210,23 +270,32 @@ void ep_set_num(digit_t *digit, uint8_t val) {
 	uint8_t y_endH = (digit->y_end>>8)&0xFF;
 	const uint8_t *data;
 
+	ep_cs_select();
 	ep_write_cmd(0x44);		// Set RAM X address start/end position
 	ep_write_data(x_start);	// start
 	ep_write_data(x_end);	// end
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x45);		// Set RAM Y address start/end position
 	ep_write_data(y_startL);	// start
 	ep_write_data(y_startH);	// (high bit)
 	ep_write_data(y_endL);	// end
 	ep_write_data(y_endH);	// (high bit)
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x4E);		// Set RAM x address counter
 	ep_write_data(x_start);
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x4F);		// Set RAM y address counter
 	ep_write_data(y_startL);
 	ep_write_data(y_startH);
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x24);		// Write RAM
 
 	if (digit->type == DIGIT_COLON) {
@@ -276,28 +345,40 @@ void ep_set_num(digit_t *digit, uint8_t val) {
 			ep_write_data(pgm_read_byte(&data[i]));
 		}
 	}
+	ep_cs_deselect();
 
 }
 
 void ep_update_display(void) {
+	ep_cs_select();
 	ep_write_cmd(0x22);		// Display update control 2
 	ep_write_data(0xC4);
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x20);		// Activate display update sequence
 	//ep_write_cmd(0xFF);//terminate?
+	ep_cs_deselect();
+
 	while (ep_check_busy());	// Wait until operations are complete
 }
 
 void ep_update_display_partial(void) {
+	ep_cs_select();
 	ep_write_cmd(0x22);		// Display update control 2
 	ep_write_data(0x04);
+	ep_cs_deselect();
 
+	ep_cs_select();
 	ep_write_cmd(0x20);		// Activate display update sequence
+	ep_cs_deselect();
 
 	while (ep_check_busy());	// Wait until operations are complete
 }
 
 void ep_deepsleep(void) {
+	ep_cs_select();
 	ep_write_cmd(0x10);		// Deep sleep mode
 	ep_write_data(0x01);
+	ep_cs_deselect();
 }
