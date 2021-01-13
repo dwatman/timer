@@ -76,7 +76,7 @@ volatile uint16_t btn_hold_ms;	// How long a button has been held for
 
 volatile uint8_t ep_upd_flg;	// Indicates which areas of the display need updating
 volatile uint8_t ep_upd_flg2;	// For the other image buffer in the display
-
+volatile enum epd_state_e epd_state;	// State of display
 
 int main(void) {
 	init_pins();			// Pin setup (direction and pullups)
@@ -129,6 +129,7 @@ int main(void) {
 
 	ep_upd_flg = EPD_UPD_ALL;		// All areas need updating
 	ep_upd_flg2 = EPD_UPD_ALL;		// Both buffers
+	epd_state = EPD_STATE_DSLEEP;	// Display starts disabled
 
 	sei();		// Enable interrupts
 
@@ -148,18 +149,56 @@ int main(void) {
 
 	while (1) {
 		if (flg & FLG_UPD) {
-			ep_init_part();		// Initialise display for partial refresh
-			delay_ms(1);
-			ep_set_num(&sec01, count_time.sec01);
-			ep_set_num(&sec10, count_time.sec10);
-			ep_set_num(&min01, count_time.min01);
-			ep_set_num(&min10, count_time.min10);
-			ep_set_num(&hr01, count_time.hr01);
+
+			if (epd_state != EPD_STATE_IDLE_PART) {		// Initialise display for partial refresh
+				ep_init_part();		// Initialise display for partial refresh
+				epd_state = EPD_STATE_IDLE_PART;
+				delay_ms(1);
+			}
+			
+			if (ep_upd_flg & EPD_UPD_WHI) {		// Clear background to white
+				ep_upd_flg &= ~EPD_UPD_WHI;		// Clear flag immediately so new changes will be detected
+				ep_set_all_white();
+			}
+			if (ep_upd_flg & EPD_UPD_CMS) {		// Update colon between minutes and seconds
+				ep_upd_flg &= ~EPD_UPD_CMS;		// Clear flag immediately so new changes will be detected
+				ep_set_num(&cms, 0);
+			}
+			if (ep_upd_flg & EPD_UPD_CHM) {		// Update colon between hours and minutes
+				ep_upd_flg &= ~EPD_UPD_CHM;		// Clear flag immediately so new changes will be detected
+				ep_set_num(&chm, 0);
+			}
+			if (ep_upd_flg & EPD_UPD_S01) {		// Update seconds 01
+				ep_upd_flg &= ~EPD_UPD_S01;		// Clear flag immediately so new changes will be detected
+				ep_set_num(&sec01, count_time.sec01);
+			}
+			if (ep_upd_flg & EPD_UPD_S10) {		// Update seconds 10
+				ep_upd_flg &= ~EPD_UPD_S10;		// Clear flag immediately so new changes will be detected
+				ep_set_num(&sec10, count_time.sec10);
+			}
+			if (ep_upd_flg & EPD_UPD_M01) {		// Update minutes 01
+				ep_upd_flg &= ~EPD_UPD_M01;		// Clear flag immediately so new changes will be detected
+				ep_set_num(&min01, count_time.min01);
+			}
+			if (ep_upd_flg & EPD_UPD_M10) {		// Update minutes 10
+				ep_upd_flg &= ~EPD_UPD_M10;		// Clear flag immediately so new changes will be detected
+				ep_set_num(&min10, count_time.min10);
+			}
+			if (ep_upd_flg & EPD_UPD_H01) {		// Update hours 01
+				ep_upd_flg &= ~EPD_UPD_H01;		// Clear flag immediately so new changes will be detected
+				ep_set_num(&hr01, count_time.hr01);
+			}
+
 			ep_update_display_partial();	// Update display (partial refresh)
 
-			ep_deepsleep();		// Enter deep sleep mode
-
-			flg &= ~FLG_UPD;	// Clear flag
+			// If there have been no display changes while refreshing, clear flag and sleep display
+			// Otherwise this will run again next loop
+			if (ep_upd_flg == 0) {
+				ep_deepsleep();		// Enter deep sleep mode
+				swap_upd_buffers();
+				epd_state = EPD_STATE_DSLEEP;
+				flg &= ~FLG_UPD;	// Clear flag
+			}
 		}
 	}
 }
@@ -178,7 +217,7 @@ ISR(TIMER1_COMPA_vect) {
 // Timer/Counter2 Overflow
 ISR(TIMER2_OVF_vect) {
 	uint8_t tmp;
-	
+
 	if (state == STATE_ACTIVE) {
 		tmp = timer_count_down(&count_time);
 		if (tmp != 0) {
@@ -187,7 +226,7 @@ ISR(TIMER2_OVF_vect) {
 		}
 		flg |= FLG_UPD;		// Set flag to update display
 	}
-	
+
 	//PORTC ^= LED_MASK;
 }
 
@@ -226,14 +265,14 @@ ISR(INT1_vect) {
 
 	sprintf(uart_tmp, "BTN_START\n");
 	uart_add_buf(uart_tmp, strlen(uart_tmp));
-	
+
 	switch (state) {
 		case STATE_IDLE_SLEEP:
 			// Wake up
 			state = STATE_STOPPED;
 			break;
 		case STATE_STOPPED:
-			// Reset timer2 count
+			TCNT2 = 0;	// Reset timer2 count
 			state = STATE_ACTIVE;
 			break;
 		case STATE_SET_MEM1:
@@ -288,7 +327,7 @@ ISR(PCINT0_vect) {
 		case SEC10_MASK: timer_inc_sec10(&count_time); break;
 		case MIN01_MASK: timer_inc_min01(&count_time); break;
 		case MIN10_MASK: timer_inc_min10(&count_time); break;
-		case HR_MASK:    timer_inc_hr01(&count_time); break;
+		case HR_MASK:    timer_inc_hr01(&count_time);  break;
 		default: return;	// Do nothing if no buttons or multiple buttons are pressed (includes button release edges)
 	}
 

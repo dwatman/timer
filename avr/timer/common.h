@@ -105,11 +105,12 @@ enum state_e {
 
 // EPD state
 enum epd_state_e {
-	EPD_STATE_DSLEEP,	// Deep sleep mode, minimise power
-	EPD_STATE_INIT,		// Initialising
-	EPD_STATE_IDLE,		// Ready for commands
-	EPD_STATE_ACTIVE,	// Transfer(s) in progress
-	EPD_STATE_BUSY		// Busy internally (eg refreshing display)
+	EPD_STATE_DSLEEP,		// Deep sleep mode, minimise power
+	EPD_STATE_INIT,			// Initialising
+	EPD_STATE_IDLE_FULL,	// Ready for commands (full refresh mode)
+	EPD_STATE_IDLE_PART,	// Ready for commands (partial refresh mode)
+	EPD_STATE_ACTIVE,		// Transfer(s) in progress
+	EPD_STATE_BUSY			// Busy internally (eg refreshing display)
 };
 
 // SPI state

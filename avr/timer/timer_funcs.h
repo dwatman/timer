@@ -13,6 +13,7 @@ typedef struct {
 	uint8_t sec01;
 } timer_t;
 
+void swap_upd_buffers(void);
 void timer_clear(timer_t *timer);
 void timer_inc_sec01(timer_t *timer);
 void timer_inc_sec10(timer_t *timer);
