@@ -105,7 +105,8 @@ int main(void) {
 	UCSR0C = (1<<UCSZ01) | (1<<UCSZ00);	// 8 data bits, 1 stop bit, no parity
 
 	// Initial state
-	//PORTC |= MOFF_MASK;	// Disable microphone
+	//PORTC |= MOFF_MASK;		// Disable microphone
+	PORTD &= ~BUZZER_MASK;	// Buzzer off
 
 	timer_clear(&count_time);	// Clear timer count
 
@@ -155,7 +156,7 @@ int main(void) {
 				epd_state = EPD_STATE_IDLE_PART;
 				delay_ms(1);
 			}
-			
+
 			if (ep_upd_flg & EPD_UPD_WHI) {		// Clear background to white
 				ep_upd_flg &= ~EPD_UPD_WHI;		// Clear flag immediately so new changes will be detected
 				ep_set_all_white();
@@ -209,6 +210,13 @@ ISR(TIMER1_COMPA_vect) {
 
 	if (btn_debounce > 0) btn_debounce--;	// Decrement debounce counter if active
 
+	if (state == STATE_END_BEEP) {	// Beeping
+		if (time_ms%4 < 2)
+			PORTD |= BUZZER_MASK;	// Buzzer on
+		else
+			PORTD &= ~BUZZER_MASK;	// Buzzer off
+	}
+
 	//if (time_ms%1000 == 0) flg |= FLAG_1S;
 
 	//if (time_ms%1000 == 0) PORTC ^= LED_MASK;
@@ -218,13 +226,21 @@ ISR(TIMER1_COMPA_vect) {
 ISR(TIMER2_OVF_vect) {
 	uint8_t tmp;
 
-	if (state == STATE_ACTIVE) {
+	if (state == STATE_ACTIVE) {	// Counting down
 		tmp = timer_count_down(&count_time);
-		if (tmp != 0) {
-			//state = STATE_END_BEEP;
-			state = STATE_STOPPED; // ***test***
+		if (tmp != 0) {	// Count reached zero
+			state = STATE_END_BEEP;
 		}
 		flg |= FLG_UPD;		// Set flag to update display
+	}
+	else if (state == STATE_END_BEEP) {	// Beeping
+		//PORTC &= ~MOFF_MASK;	// Enable microphone
+		//PORTC |= MOFF_MASK;	// Disable microphone
+		PORTD &= ~BUZZER_MASK;	// Buzzer off
+		state = STATE_END_DONE;
+	}
+	else if (state == STATE_END_DONE) {	// Finished beeping
+		state = STATE_STOPPED;
 	}
 
 	//PORTC ^= LED_MASK;
