@@ -7,6 +7,7 @@
 #include "epaper.h"
 #include "timer_funcs.h"
 #include "buffers.h"
+#include "buttons.h"
 
 /*
 Pin usage:
@@ -209,6 +210,8 @@ ISR(TIMER1_COMPA_vect) {
 	time_ms++;
 
 	if (btn_debounce > 0) btn_debounce--;	// Decrement debounce counter if active
+	
+	if (time_ms%5 == 0) check_buttons();	// Check buttons for time pressed
 
 	if (state == STATE_END_BEEP) {	// Beeping
 		if (time_ms%4 < 2)
@@ -338,14 +341,14 @@ ISR(PCINT0_vect) {
 	buttons = buttons ^ 0xFF;	// Invert as buttons are active low
 	buttons = buttons & (SEC01_MASK | SEC10_MASK | MIN01_MASK | MIN10_MASK | HR_MASK);	// Mask for button pins
 
-	switch (buttons) {
+	/*switch (buttons) {
 		case SEC01_MASK: timer_inc_sec01(&count_time); break;
 		case SEC10_MASK: timer_inc_sec10(&count_time); break;
 		case MIN01_MASK: timer_inc_min01(&count_time); break;
 		case MIN10_MASK: timer_inc_min10(&count_time); break;
 		case HR_MASK:    timer_inc_hr01(&count_time);  break;
 		default: return;	// Do nothing if no buttons or multiple buttons are pressed (includes button release edges)
-	}
+	}*/
 
 	// This only runs if a valid case occurred
 	flg |= FLG_UPD;		// Set flag to update display
@@ -362,12 +365,12 @@ ISR(PCINT3_vect) {
 	buttons = buttons ^ 0xFF;	// Invert as buttons are active low
 	buttons = buttons & (MEM1_MASK | MEM2_MASK | MEM3_MASK);	// Mask for button pins
 
-	switch (buttons) {
+	/*switch (buttons) {
 		case MEM1_MASK: timer_read_mem1(&count_time); break;
 		case MEM2_MASK: timer_read_mem2(&count_time); break;
 		case MEM3_MASK: timer_read_mem3(&count_time); break;
 		default: return;	// Do nothing if no buttons or multiple buttons are pressed (includes button release edges)
-	}
+	}*/
 
 	// This only runs if a valid case occurred
 	flg |= FLG_UPD;						// Set flag to update display

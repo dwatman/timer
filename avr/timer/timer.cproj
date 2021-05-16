@@ -114,6 +114,12 @@
     <Compile Include="buffers.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="buttons.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="buttons.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="common.c">
       <SubType>compile</SubType>
     </Compile>
