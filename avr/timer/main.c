@@ -129,13 +129,7 @@ int main(void) {
 
 	sei();		// Enable interrupts
 
-	ep_init_hw();			// Initialise display for full refresh
-	delay_ms(1);
-	ep_set_all_white();		// Clear display buffer
-	delay_ms(1);
-	ep_update_display();	// Update display (full refresh)
-	ep_set_all_white();		// Clear second display buffer
-	ep_deepsleep();			// Enter deep sleep mode
+	ep_full_clear();
 
 	sprintf(uart_tmp, "\nmain loop start\n");
 	uart_add_buf(uart_tmp, strlen(uart_tmp));
@@ -196,6 +190,20 @@ int main(void) {
 				flg &= ~FLG_UPD;	// Clear flag
 			}
 		}
+		if (flg & FLG_TURNOFF) {
+			// Fully refresh the display to all white
+			ep_full_clear();
+			epd_state = EPD_STATE_DSLEEP;
+
+			sprintf(uart_tmp, "\nmain loop start\n");
+			uart_add_buf(uart_tmp, strlen(uart_tmp));
+			
+			// go into low-power state
+			//state = STATE_IDLE_SLEEP;
+			
+			flg &= ~FLG_TURNOFF;	// Clear flag
+		}
+		
 	}
 }
 

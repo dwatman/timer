@@ -65,7 +65,8 @@
 #define DIGIT_COLON		2
 
 // Main loop flags
-#define FLG_UPD	0x01
+#define FLG_UPD		0x01
+#define FLG_TURNOFF	0x10
 
 // Bit masks for tracking which parts of the display need updating
 #define EPD_UPD_S01	0x01	// Seconds 1 digit

@@ -30,5 +30,6 @@ void ep_set_num(digit_t *digit, uint8_t val);
 void ep_update_display(void);
 void ep_update_display_partial(void);
 void ep_deepsleep(void);
+void ep_full_clear(void);
 
 #endif

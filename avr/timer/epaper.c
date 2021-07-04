@@ -382,3 +382,13 @@ void ep_deepsleep(void) {
 	ep_write_data(0x01);
 	ep_cs_deselect();
 }
+
+void ep_full_clear(void) {
+	ep_init_hw();			// Initialise display for full refresh
+	delay_ms(1);
+	ep_set_all_white();		// Clear display buffer
+	delay_ms(1);
+	ep_update_display();	// Update display (full refresh)
+	ep_set_all_white();		// Clear second display buffer
+	ep_deepsleep();			// Enter deep sleep mode
+}

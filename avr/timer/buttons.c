@@ -3,6 +3,7 @@
 #include "buttons.h"
 #include "common.h"
 #include "timer_funcs.h"
+#include "epaper.h"
 
 extern timer_t count_time;		// Counter time (volatile?)
 extern volatile uint8_t flg;			// General purpose flags
@@ -279,5 +280,5 @@ void clear_button_short_func(void) {
 }
 
 void clear_button_long_func(void) {
-	// go to low-power state?
+	flg |= FLG_TURNOFF;		// Clear display and go to low-power state
 }
