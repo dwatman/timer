@@ -60,7 +60,7 @@ Interrupts:
 
 extern digit_t hr01, chm, min10, min01, cms, sec10, sec01;
 
-timer_t count_time;	// ? volatile
+timer_t count_time;		// Counter time (volatile?)
 
 volatile enum spi_state_e spi_state;	// State of SPI transfers
 
@@ -71,9 +71,6 @@ volatile enum uart_state_e uart_state;	// State of UART transfers
 volatile uint16_t time_ms;		// For general timing
 volatile uint8_t flg;			// General purpose flags
 volatile enum state_e state;	// Operating state
-
-volatile uint8_t btn_debounce;	// Counter for debounce delay
-volatile uint16_t btn_hold_ms;	// How long a button has been held for
 
 volatile uint8_t ep_upd_flg;	// Indicates which areas of the display need updating
 volatile uint8_t ep_upd_flg2;	// For the other image buffer in the display
@@ -125,9 +122,6 @@ int main(void) {
 	time_ms = 0;
 	flg = 0;
 	state = STATE_STOPPED;
-
-	btn_debounce = 0;
-	btn_hold_ms = 0;
 
 	ep_upd_flg = EPD_UPD_ALL;		// All areas need updating
 	ep_upd_flg2 = EPD_UPD_ALL;		// Both buffers
@@ -209,9 +203,7 @@ int main(void) {
 ISR(TIMER1_COMPA_vect) {
 	time_ms++;
 
-	if (btn_debounce > 0) btn_debounce--;	// Decrement debounce counter if active
-	
-	if (time_ms%5 == 0) check_buttons();	// Check buttons for time pressed
+	if (time_ms%10 == 0) check_buttons();	// Check buttons for time pressed
 
 	if (state == STATE_END_BEEP) {	// Beeping
 		if (time_ms%4 < 2)
@@ -251,77 +243,19 @@ ISR(TIMER2_OVF_vect) {
 
 // External Interrupt Request 0 (CLR button, press only)
 ISR(INT0_vect) {
-	if (btn_debounce > 0) return;			// Ignore buttons during debounce period
-	else btn_debounce = DEBOUNCE_TIMEOUT;	// Otherwise set debounce timer
 
-	switch (state) {
-		case STATE_IDLE_SLEEP:
-			// Wake up
-			state = STATE_STOPPED;
-		case STATE_STOPPED:
-		case STATE_SET_MEM1:
-		case STATE_SET_MEM2:
-		case STATE_SET_MEM3:
-			timer_clear(&count_time);	// Clear timer count
-			flg |= FLG_UPD;		// Set flag to update display
-			break;
-		case STATE_ACTIVE: break;
-		case STATE_END_BEEP:
-			// Stop beeping
-		case STATE_END_DONE:
-			// Clear done indication
-			state = STATE_STOPPED;
-			break;
-	}
+
 
 	//PORTC ^= LED_MASK;
 }
 
 // External Interrupt Request 1 (START button, press only)
 ISR(INT1_vect) {
-	if (btn_debounce > 0) return;			// Ignore buttons during debounce period
-	else btn_debounce = DEBOUNCE_TIMEOUT;	// Otherwise set debounce timer
 
 	sprintf(uart_tmp, "BTN_START\n");
 	uart_add_buf(uart_tmp, strlen(uart_tmp));
 
-	switch (state) {
-		case STATE_IDLE_SLEEP:
-			// Wake up
-			state = STATE_STOPPED;
-			break;
-		case STATE_STOPPED:
-			TCNT2 = 0;	// Reset timer2 count
-			state = STATE_ACTIVE;
-			break;
-		case STATE_SET_MEM1:
-			timer_write_mem1(&count_time);	// Store current count in MEM1
-			// Remove MEM1 set from display
-			flg |= FLG_UPD;		// Set flag to update display
-			state = STATE_STOPPED;
-			break;
-		case STATE_SET_MEM2:
-			timer_write_mem2(&count_time);	// Store current count in MEM2
-			// Remove MEM2 set from display
-			flg |= FLG_UPD;		// Set flag to update display
-			state = STATE_STOPPED;
-			break;
-		case STATE_SET_MEM3:
-			timer_write_mem3(&count_time);	// Store current count in MEM3
-			// Remove MEM3 set from display
-			flg |= FLG_UPD;		// Set flag to update display
-			state = STATE_STOPPED;
-			break;
-		case STATE_ACTIVE:
-			state = STATE_STOPPED;
-			break;
-		case STATE_END_BEEP:
-			// Stop beeping
-		case STATE_END_DONE:
-			// Clear done indication
-			state = STATE_STOPPED;
-			break;
-	}
+
 
 	//PORTC ^= LED_MASK;
 }
@@ -334,48 +268,28 @@ ISR(PCINT1_vect) {
 ISR(PCINT0_vect) {
 	uint8_t buttons;
 
-	if (btn_debounce > 0) return;			// Ignore buttons during debounce period
-	else btn_debounce = DEBOUNCE_TIMEOUT;	// Otherwise set debounce timer (on both edges to suppress short spikes too)
-
 	buttons = PINA;				// Read button inputs
 	buttons = buttons ^ 0xFF;	// Invert as buttons are active low
 	buttons = buttons & (SEC01_MASK | SEC10_MASK | MIN01_MASK | MIN10_MASK | HR_MASK);	// Mask for button pins
 
-	/*switch (buttons) {
-		case SEC01_MASK: timer_inc_sec01(&count_time); break;
-		case SEC10_MASK: timer_inc_sec10(&count_time); break;
-		case MIN01_MASK: timer_inc_min01(&count_time); break;
-		case MIN10_MASK: timer_inc_min10(&count_time); break;
-		case HR_MASK:    timer_inc_hr01(&count_time);  break;
-		default: return;	// Do nothing if no buttons or multiple buttons are pressed (includes button release edges)
-	}*/
+	if (buttons) {
+		// Wake up ms timer for debounce timing
+	}
 
-	// This only runs if a valid case occurred
-	flg |= FLG_UPD;		// Set flag to update display
 }
 
 // Pin Change Interrupt Request 3 (memory buttons, press and release)
 ISR(PCINT3_vect) {
 	uint8_t buttons;
 
-	if (btn_debounce > 0) return;			// Ignore buttons during debounce period
-	else btn_debounce = DEBOUNCE_TIMEOUT;	// Otherwise set debounce timer (on both edges to suppress short spikes too)
-
 	buttons = PIND;				// Read button inputs
 	buttons = buttons ^ 0xFF;	// Invert as buttons are active low
 	buttons = buttons & (MEM1_MASK | MEM2_MASK | MEM3_MASK);	// Mask for button pins
 
-	/*switch (buttons) {
-		case MEM1_MASK: timer_read_mem1(&count_time); break;
-		case MEM2_MASK: timer_read_mem2(&count_time); break;
-		case MEM3_MASK: timer_read_mem3(&count_time); break;
-		default: return;	// Do nothing if no buttons or multiple buttons are pressed (includes button release edges)
-	}*/
-
-	// This only runs if a valid case occurred
-	flg |= FLG_UPD;						// Set flag to update display
-
-	//PORTC ^= LED_MASK;
+	if (buttons) {
+		// Wake up ms timer for debounce timing
+	}
+	
 }
 
 // USART0 Data Register Empty
