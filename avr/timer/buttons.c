@@ -9,20 +9,23 @@ extern timer_t count_time;		// Counter time (volatile?)
 extern volatile uint8_t flg;			// General purpose flags
 extern volatile enum state_e state;		// Operating state
 
-uint8_t tpress_sec01 = 0;
-uint8_t tpress_sec10 = 0;
-uint8_t tpress_min01 = 0;
-uint8_t tpress_min10 = 0;
-uint8_t tpress_hr = 0;
-
-uint8_t tpress_clr = 0;
-uint8_t tpress_start = 0;
-uint8_t tpress_mem1 = 0;
-uint8_t tpress_mem2 = 0;
-uint8_t tpress_mem3 = 0;
+extern volatile uint16_t ep_upd_flg;	// Indicates which areas of the display need updating
+extern volatile uint16_t ep_upd_flg2;	// For the other image buffer in the display
 
 // Process buttons
 void check_buttons(void) {
+	static uint8_t tpress_sec01 = 0;
+	static uint8_t tpress_sec10 = 0;
+	static uint8_t tpress_min01 = 0;
+	static uint8_t tpress_min10 = 0;
+	static uint8_t tpress_hr = 0;
+
+	static uint8_t tpress_clr = 0;
+	static uint8_t tpress_start = 0;
+	static uint8_t tpress_mem1 = 0;
+	static uint8_t tpress_mem2 = 0;
+	static uint8_t tpress_mem3 = 0;
+
 	// Check START button
 	if (PIND & START_MASK) {	// Button not pressed
 		tpress_start = 0;
@@ -61,10 +64,12 @@ void check_buttons(void) {
 		}
 
 		if (tpress_mem1 == MEM_LONG_PRESS) {	// Take action for long press
-			// Check state
-			// Write MEM1 set to display
-			//state = STATE_SET_MEM1;
-			//flg |= FLG_UPD;		// Set flag to update display
+			if (state == STATE_STOPPED) {
+				state = STATE_SET_MEM1;
+				ep_upd_flg |= EPD_UPD_MEM;	// Write MEM1 to display
+				ep_upd_flg2 |= ep_upd_flg;	// Copy changes to other buffer too
+				flg |= FLG_UPD;		// Set flag to update display
+			}
 		}
 
 		if (tpress_mem1 <= MEM_LONG_PRESS)	// Increment count until over threshold (then stop)
@@ -82,10 +87,12 @@ void check_buttons(void) {
 		}
 
 		if (tpress_mem2 == MEM_LONG_PRESS) {	// Take action for long press
-			// Check state
-			// Write MEM2 set to display
-			//state = STATE_SET_MEM2;
-			//flg |= FLG_UPD;		// Set flag to update display
+			if (state == STATE_STOPPED) {
+				state = STATE_SET_MEM2;
+				ep_upd_flg |= EPD_UPD_MEM;	// Write MEM2 to display
+				ep_upd_flg2 |= ep_upd_flg;	// Copy changes to other buffer too
+				flg |= FLG_UPD;		// Set flag to update display
+			}
 		}
 		
 		if (tpress_mem2 <= MEM_LONG_PRESS)	// Increment count until over threshold (then stop)
@@ -103,10 +110,12 @@ void check_buttons(void) {
 		}
 
 		if (tpress_mem3 == MEM_LONG_PRESS) {	// Take action for long press
-			// Check state
-			// Write MEM3 set to display
-			//state = STATE_SET_MEM3;
-			//flg |= FLG_UPD;		// Set flag to update display
+			if (state == STATE_STOPPED) {
+				state = STATE_SET_MEM3;
+				ep_upd_flg |= EPD_UPD_MEM;	// Write MEM3 to display
+				ep_upd_flg2 |= ep_upd_flg;	// Copy changes to other buffer too
+				flg |= FLG_UPD;		// Set flag to update display
+			}
 		}
 		
 		if (tpress_mem3 <= MEM_LONG_PRESS)	// Increment count until over threshold (then stop)
@@ -227,24 +236,27 @@ void start_button_func(void) {
 			break;
 		case STATE_SET_MEM1:
 			timer_write_mem1(&count_time);	// Store current count in MEM1
-			// Remove MEM1 set from display
-			flg |= FLG_UPD;		// Set flag to update display
 			state = STATE_STOPPED;
+			ep_upd_flg |= EPD_UPD_MEM;	// Remove MEM1 set from display
+			ep_upd_flg2 |= ep_upd_flg;	// Copy changes to other buffer too
+			flg |= FLG_UPD;		// Set flag to update display
 			break;
 		case STATE_SET_MEM2:
 			timer_write_mem2(&count_time);	// Store current count in MEM2
-			// Remove MEM2 set from display
-			flg |= FLG_UPD;		// Set flag to update display
 			state = STATE_STOPPED;
+			ep_upd_flg |= EPD_UPD_MEM;	// Remove MEM2 set from display
+			ep_upd_flg2 |= ep_upd_flg;	// Copy changes to other buffer too
+			flg |= FLG_UPD;		// Set flag to update display
 			break;
 		case STATE_SET_MEM3:
 			timer_write_mem3(&count_time);	// Store current count in MEM3
-			// Remove MEM3 set from display
-			flg |= FLG_UPD;		// Set flag to update display
 			state = STATE_STOPPED;
+			ep_upd_flg |= EPD_UPD_MEM;	// Remove MEM3 set from display
+			ep_upd_flg2 |= ep_upd_flg;	// Copy changes to other buffer too
+			flg |= FLG_UPD;		// Set flag to update display
 			break;
 		case STATE_ACTIVE:
-			state = STATE_STOPPED;
+			state = STATE_STOPPED;	// Pause counting
 			break;
 		case STATE_END_BEEP:
 			// Stop beeping
@@ -262,10 +274,15 @@ void clear_button_short_func(void) {
 			// Wake up
 			state = STATE_STOPPED;
 		case STATE_STOPPED:
+			timer_clear(&count_time);	// Clear timer count
+			flg |= FLG_UPD;		// Set flag to update display
+			break;
 		case STATE_SET_MEM1:
 		case STATE_SET_MEM2:
 		case STATE_SET_MEM3:
-			timer_clear(&count_time);	// Clear timer count
+			state = STATE_STOPPED;
+			ep_upd_flg |= EPD_UPD_MEM;
+			ep_upd_flg2 |= ep_upd_flg;	// Copy changes to other buffer too
 			flg |= FLG_UPD;		// Set flag to update display
 			break;
 		case STATE_ACTIVE: break;

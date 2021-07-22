@@ -63,23 +63,25 @@
 #define GFX_DIGIT_SMALL		0
 #define GFX_DIGIT_BIG		1
 #define GFX_DIGIT_COLON		2
+#define GFX_MEM_TXT			3
 
 // Main loop flags
 #define FLG_UPD		0x01
 #define FLG_TURNOFF	0x10
 
 // Bit masks for tracking which parts of the display need updating
-#define EPD_UPD_S01	0x01	// Seconds 1 digit
-#define EPD_UPD_S10	0x02	// Seconds 10 digit
-#define EPD_UPD_M01	0x04	// Minutes 1 digit
-#define EPD_UPD_M10	0x08	// Minutes 10 digit
-#define EPD_UPD_H01	0x10	// Hours 1 digit
-#define EPD_UPD_CMS	0x20	// Colon between minutes and seconds
-#define EPD_UPD_CHM	0x40	// Colon between hours and minutes
-#define EPD_UPD_WHI	0x80	// White background
+#define EPD_UPD_S01	0x0001	// Seconds 1 digit
+#define EPD_UPD_S10	0x0002	// Seconds 10 digit
+#define EPD_UPD_M01	0x0004	// Minutes 1 digit
+#define EPD_UPD_M10	0x0008	// Minutes 10 digit
+#define EPD_UPD_H01	0x0010	// Hours 1 digit
+#define EPD_UPD_CMS	0x0020	// Colon between minutes and seconds
+#define EPD_UPD_CHM	0x0040	// Colon between hours and minutes
+#define EPD_UPD_MEM	0x0080	// MEMx edit mode marker
 //#define EPD_UPD_BAT	0x	// Low battery indication
 //#define EPD_UPD_END	0x	// Alarm end
-#define EPD_UPD_ALL	0xFF	// All parts of the display
+#define EPD_UPD_WHI	0x8000	// White background
+#define EPD_UPD_ALL	0xFFFF	// All parts of the display
 
 #define SPI_TYPE_CMD	0
 #define SPI_TYPE_DATA	1

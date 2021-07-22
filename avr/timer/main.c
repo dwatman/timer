@@ -59,6 +59,7 @@ Interrupts:
 */
 
 extern digit_t digit_hr01, digit_chm, digit_min10, digit_min01, digit_cms, digit_sec10, digit_sec01;
+extern digit_t digit_mem;
 
 timer_t count_time;		// Counter time (volatile?)
 
@@ -72,8 +73,8 @@ volatile uint16_t time_ms;		// For general timing
 volatile uint8_t flg;			// General purpose flags
 volatile enum state_e state;	// Operating state
 
-volatile uint8_t ep_upd_flg;	// Indicates which areas of the display need updating
-volatile uint8_t ep_upd_flg2;	// For the other image buffer in the display
+volatile uint16_t ep_upd_flg;	// Indicates which areas of the display need updating
+volatile uint16_t ep_upd_flg2;	// For the other image buffer in the display
 volatile enum epd_state_e epd_state;	// State of display
 
 int main(void) {

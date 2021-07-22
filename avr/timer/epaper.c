@@ -23,6 +23,7 @@ const uint8_t LUT_DATA_part[30] PROGMEM = {
 };
 
 digit_t digit_hr01, digit_chm, digit_min10, digit_min01, digit_cms, digit_sec10, digit_sec01;
+digit_t digit_mem;
 
 void init_gfx_data(void) {
 	digit_sec01.type = GFX_DIGIT_SMALL;

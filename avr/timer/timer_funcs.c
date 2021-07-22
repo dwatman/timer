@@ -3,11 +3,11 @@
 #include "timer_funcs.h"
 #include "common.h"
 
-extern volatile uint8_t ep_upd_flg;		// Indicates which areas of the display need updating
-extern volatile uint8_t ep_upd_flg2;	// For the other image buffer in the display
+extern volatile uint16_t ep_upd_flg;	// Indicates which areas of the display need updating
+extern volatile uint16_t ep_upd_flg2;	// For the other image buffer in the display
 
 void swap_upd_buffers(void) {
-	uint8_t tmp;
+	uint16_t tmp;
 
 	// Swap display update flags between the two buffers
 	tmp = ep_upd_flg;
