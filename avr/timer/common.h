@@ -60,9 +60,9 @@
 #define BUZZER_MASK	(1<<BUZZER_PIN)
 
 // Digit types
-#define DIGIT_SMALL		0
-#define DIGIT_BIG		1
-#define DIGIT_COLON		2
+#define GFX_DIGIT_SMALL		0
+#define GFX_DIGIT_BIG		1
+#define GFX_DIGIT_COLON		2
 
 // Main loop flags
 #define FLG_UPD		0x01

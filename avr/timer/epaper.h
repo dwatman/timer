@@ -22,7 +22,7 @@
 #define DISP_STARTY_CHM		225
 #define DISP_STARTY_H01		240
 
-void init_digits(void);
+void init_gfx_data(void);
 void ep_init_hw(void);
 void ep_init_part(void);
 void ep_set_all_white(void);

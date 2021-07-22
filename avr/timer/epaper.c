@@ -22,57 +22,57 @@ const uint8_t LUT_DATA_part[30] PROGMEM = {
 	0x13, 0x14, 0x44, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-digit_t hr01, chm, min10, min01, cms, sec10, sec01;
+digit_t digit_hr01, digit_chm, digit_min10, digit_min01, digit_cms, digit_sec10, digit_sec01;
 
-void init_digits(void) {
-	sec01.type = DIGIT_SMALL;
-	sec01.x_start = DISP_STARTX_SEC;
-	sec01.x_end = DISP_STARTX_SEC + NUM_SML_XSIZE - 1;
-	sec01.y_start = DISP_STARTY_S01;
-	sec01.y_end = DISP_STARTY_S01 + NUM_SML_YSIZE - 1;
-	sec01.num_bytes = NUM_SML_XSIZE*NUM_SML_YSIZE;
+void init_gfx_data(void) {
+	digit_sec01.type = GFX_DIGIT_SMALL;
+	digit_sec01.x_start = DISP_STARTX_SEC;
+	digit_sec01.x_end = DISP_STARTX_SEC + NUM_SML_XSIZE - 1;
+	digit_sec01.y_start = DISP_STARTY_S01;
+	digit_sec01.y_end = DISP_STARTY_S01 + NUM_SML_YSIZE - 1;
+	digit_sec01.num_bytes = NUM_SML_XSIZE*NUM_SML_YSIZE;
 
-	sec10.type = DIGIT_SMALL;
-	sec10.x_start = DISP_STARTX_SEC;
-	sec10.x_end = DISP_STARTX_SEC + NUM_SML_XSIZE - 1;
-	sec10.y_start = DISP_STARTY_S10;
-	sec10.y_end = DISP_STARTY_S10 + NUM_SML_YSIZE - 1;
-	sec10.num_bytes = NUM_SML_XSIZE*NUM_SML_YSIZE;
+	digit_sec10.type = GFX_DIGIT_SMALL;
+	digit_sec10.x_start = DISP_STARTX_SEC;
+	digit_sec10.x_end = DISP_STARTX_SEC + NUM_SML_XSIZE - 1;
+	digit_sec10.y_start = DISP_STARTY_S10;
+	digit_sec10.y_end = DISP_STARTY_S10 + NUM_SML_YSIZE - 1;
+	digit_sec10.num_bytes = NUM_SML_XSIZE*NUM_SML_YSIZE;
 
-	cms.type = DIGIT_COLON;
-	cms.x_start = DISP_STARTX_CLN;
-	cms.x_end = DISP_STARTX_CLN + 4 - 1;
-	cms.y_start = DISP_STARTY_CMS;
-	cms.y_end = DISP_STARTY_CMS + 6 - 1;
-	cms.num_bytes = 4*6;
+	digit_cms.type = GFX_DIGIT_COLON;
+	digit_cms.x_start = DISP_STARTX_CLN;
+	digit_cms.x_end = DISP_STARTX_CLN + 4 - 1;
+	digit_cms.y_start = DISP_STARTY_CMS;
+	digit_cms.y_end = DISP_STARTY_CMS + 6 - 1;
+	digit_cms.num_bytes = 4*6;
 
-	min01.type = DIGIT_BIG;
-	min01.x_start = DISP_STARTX_MIN;
-	min01.x_end = DISP_STARTX_MIN + NUM_BIG_XSIZE - 1;
-	min01.y_start = DISP_STARTY_M01;
-	min01.y_end = DISP_STARTY_M01 + NUM_BIG_YSIZE - 1;
-	min01.num_bytes = NUM_BIG_XSIZE*NUM_BIG_YSIZE;
+	digit_min01.type = GFX_DIGIT_BIG;
+	digit_min01.x_start = DISP_STARTX_MIN;
+	digit_min01.x_end = DISP_STARTX_MIN + NUM_BIG_XSIZE - 1;
+	digit_min01.y_start = DISP_STARTY_M01;
+	digit_min01.y_end = DISP_STARTY_M01 + NUM_BIG_YSIZE - 1;
+	digit_min01.num_bytes = NUM_BIG_XSIZE*NUM_BIG_YSIZE;
 
-	min10.type = DIGIT_BIG;
-	min10.x_start = DISP_STARTX_MIN;
-	min10.x_end = DISP_STARTX_MIN + NUM_BIG_XSIZE - 1;
-	min10.y_start = DISP_STARTY_M10;
-	min10.y_end = DISP_STARTY_M10 + NUM_BIG_YSIZE - 1;
-	min10.num_bytes = NUM_BIG_XSIZE*NUM_BIG_YSIZE;
+	digit_min10.type = GFX_DIGIT_BIG;
+	digit_min10.x_start = DISP_STARTX_MIN;
+	digit_min10.x_end = DISP_STARTX_MIN + NUM_BIG_XSIZE - 1;
+	digit_min10.y_start = DISP_STARTY_M10;
+	digit_min10.y_end = DISP_STARTY_M10 + NUM_BIG_YSIZE - 1;
+	digit_min10.num_bytes = NUM_BIG_XSIZE*NUM_BIG_YSIZE;
 
-	chm.type = DIGIT_COLON;
-	chm.x_start = DISP_STARTX_CLN;
-	chm.x_end = DISP_STARTX_CLN + 4 - 1;
-	chm.y_start = DISP_STARTY_CHM;
-	chm.y_end = DISP_STARTY_CHM + 6 - 1;
-	chm.num_bytes = 4*6;
+	digit_chm.type = GFX_DIGIT_COLON;
+	digit_chm.x_start = DISP_STARTX_CLN;
+	digit_chm.x_end = DISP_STARTX_CLN + 4 - 1;
+	digit_chm.y_start = DISP_STARTY_CHM;
+	digit_chm.y_end = DISP_STARTY_CHM + 6 - 1;
+	digit_chm.num_bytes = 4*6;
 
-	hr01.type = DIGIT_BIG;
-	hr01.x_start = DISP_STARTX_HR;
-	hr01.x_end = DISP_STARTX_HR + NUM_BIG_XSIZE - 1;
-	hr01.y_start = DISP_STARTY_H01;
-	hr01.y_end = DISP_STARTY_H01 + NUM_BIG_YSIZE - 1;
-	hr01.num_bytes = NUM_BIG_XSIZE*NUM_BIG_YSIZE;
+	digit_hr01.type = GFX_DIGIT_BIG;
+	digit_hr01.x_start = DISP_STARTX_HR;
+	digit_hr01.x_end = DISP_STARTX_HR + NUM_BIG_XSIZE - 1;
+	digit_hr01.y_start = DISP_STARTY_H01;
+	digit_hr01.y_end = DISP_STARTY_H01 + NUM_BIG_YSIZE - 1;
+	digit_hr01.num_bytes = NUM_BIG_XSIZE*NUM_BIG_YSIZE;
 }
 
 /*
@@ -298,7 +298,7 @@ void ep_set_num(digit_t *digit, uint8_t val) {
 	ep_cs_select();
 	ep_write_cmd(0x24);		// Write RAM
 
-	if (digit->type == DIGIT_COLON) {
+	if (digit->type == GFX_DIGIT_COLON) {
 		for (i=0; i<digit->num_bytes; i++) {
 			// pattern B W W B
 			if (((i & 0x0003) == 0) || ((i & 0x0003) == 3))
@@ -308,7 +308,7 @@ void ep_set_num(digit_t *digit, uint8_t val) {
 		}
 	}
 	else {
-		if (digit->type == DIGIT_SMALL) {
+		if (digit->type == GFX_DIGIT_SMALL) {
 			switch (val) {
 				case 0: data = num_sml_0; break;
 				case 1: data = num_sml_1; break;
@@ -323,7 +323,7 @@ void ep_set_num(digit_t *digit, uint8_t val) {
 				default: return;	// Abort on unknown digit
 			}
 		}
-		else if (digit->type == DIGIT_BIG) {
+		else if (digit->type == GFX_DIGIT_BIG) {
 			switch (val) {
 				case 0: data = num_big_0; break;
 				case 1: data = num_big_1; break;

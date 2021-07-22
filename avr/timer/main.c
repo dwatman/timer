@@ -58,7 +58,7 @@ Interrupts:
 	PCINT3			Memory buttons
 */
 
-extern digit_t hr01, chm, min10, min01, cms, sec10, sec01;
+extern digit_t digit_hr01, digit_chm, digit_min10, digit_min01, digit_cms, digit_sec10, digit_sec01;
 
 timer_t count_time;		// Counter time (volatile?)
 
@@ -117,7 +117,7 @@ int main(void) {
 	uart_buf.tail = 0;
 	uart_state = UART_STATE_IDLE;
 
-	init_digits();
+	init_gfx_data();
 
 	time_ms = 0;
 	flg = 0;
@@ -152,31 +152,31 @@ int main(void) {
 			}
 			if (ep_upd_flg & EPD_UPD_CMS) {		// Update colon between minutes and seconds
 				ep_upd_flg &= ~EPD_UPD_CMS;		// Clear flag immediately so new changes will be detected
-				ep_set_num(&cms, 0);
+				ep_set_num(&digit_cms, 0);
 			}
 			if (ep_upd_flg & EPD_UPD_CHM) {		// Update colon between hours and minutes
 				ep_upd_flg &= ~EPD_UPD_CHM;		// Clear flag immediately so new changes will be detected
-				ep_set_num(&chm, 0);
+				ep_set_num(&digit_chm, 0);
 			}
 			if (ep_upd_flg & EPD_UPD_S01) {		// Update seconds 01
 				ep_upd_flg &= ~EPD_UPD_S01;		// Clear flag immediately so new changes will be detected
-				ep_set_num(&sec01, count_time.sec01);
+				ep_set_num(&digit_sec01, count_time.sec01);
 			}
 			if (ep_upd_flg & EPD_UPD_S10) {		// Update seconds 10
 				ep_upd_flg &= ~EPD_UPD_S10;		// Clear flag immediately so new changes will be detected
-				ep_set_num(&sec10, count_time.sec10);
+				ep_set_num(&digit_sec10, count_time.sec10);
 			}
 			if (ep_upd_flg & EPD_UPD_M01) {		// Update minutes 01
 				ep_upd_flg &= ~EPD_UPD_M01;		// Clear flag immediately so new changes will be detected
-				ep_set_num(&min01, count_time.min01);
+				ep_set_num(&digit_min01, count_time.min01);
 			}
 			if (ep_upd_flg & EPD_UPD_M10) {		// Update minutes 10
 				ep_upd_flg &= ~EPD_UPD_M10;		// Clear flag immediately so new changes will be detected
-				ep_set_num(&min10, count_time.min10);
+				ep_set_num(&digit_min10, count_time.min10);
 			}
 			if (ep_upd_flg & EPD_UPD_H01) {		// Update hours 01
 				ep_upd_flg &= ~EPD_UPD_H01;		// Clear flag immediately so new changes will be detected
-				ep_set_num(&hr01, count_time.hr01);
+				ep_set_num(&digit_hr01, count_time.hr01);
 			}
 
 			ep_update_display_partial();	// Update display (partial refresh)
