@@ -7,6 +7,7 @@
 
 #include "data_nums_small.h"
 #include "data_nums_large.h"
+#include "data_misc.h"
 
 //C221 25C Full update waveform
 const uint8_t LUT_DATA_full[30] PROGMEM = {
@@ -74,6 +75,13 @@ void init_gfx_data(void) {
 	digit_hr01.y_start = DISP_STARTY_H01;
 	digit_hr01.y_end = DISP_STARTY_H01 + NUM_BIG_YSIZE - 1;
 	digit_hr01.num_bytes = NUM_BIG_XSIZE*NUM_BIG_YSIZE;
+	
+	digit_mem.type = GFX_MEM_TXT;
+	digit_mem.x_start = DISP_STARTX_MEM;
+	digit_mem.x_end = DISP_STARTX_MEM + TXT_MEM_XSIZE - 1;
+	digit_mem.y_start = DISP_STARTY_MEM;
+	digit_mem.y_end = DISP_STARTY_MEM + TXT_MEM_YSIZE + NUM_MEM_YSIZE - 1;
+	digit_mem.num_bytes = TXT_MEM_XSIZE*(TXT_MEM_YSIZE + NUM_MEM_YSIZE);
 }
 
 /*
@@ -308,44 +316,75 @@ void ep_set_num(digit_t *digit, uint8_t val) {
 				ep_write_data(0xFF);
 		}
 	}
-	else {
-		if (digit->type == GFX_DIGIT_SMALL) {
-			switch (val) {
-				case 0: data = num_sml_0; break;
-				case 1: data = num_sml_1; break;
-				case 2: data = num_sml_2; break;
-				case 3: data = num_sml_3; break;
-				case 4: data = num_sml_4; break;
-				case 5: data = num_sml_5; break;
-				case 6: data = num_sml_6; break;
-				case 7: data = num_sml_7; break;
-				case 8: data = num_sml_8; break;
-				case 9: data = num_sml_9; break;
-				default: return;	// Abort on unknown digit
-			}
+	else if (digit->type == GFX_DIGIT_SMALL) {
+		switch (val) {
+			case 0: data = num_sml_0; break;
+			case 1: data = num_sml_1; break;
+			case 2: data = num_sml_2; break;
+			case 3: data = num_sml_3; break;
+			case 4: data = num_sml_4; break;
+			case 5: data = num_sml_5; break;
+			case 6: data = num_sml_6; break;
+			case 7: data = num_sml_7; break;
+			case 8: data = num_sml_8; break;
+			case 9: data = num_sml_9; break;
+			default: 	// Abort on unknown digit
+				ep_cs_deselect();
+				return;
 		}
-		else if (digit->type == GFX_DIGIT_BIG) {
-			switch (val) {
-				case 0: data = num_big_0; break;
-				case 1: data = num_big_1; break;
-				case 2: data = num_big_2; break;
-				case 3: data = num_big_3; break;
-				case 4: data = num_big_4; break;
-				case 5: data = num_big_5; break;
-				case 6: data = num_big_6; break;
-				case 7: data = num_big_7; break;
-				case 8: data = num_big_8; break;
-				case 9: data = num_big_9; break;
-				default: return;	// Abort on unknown digit
-			}
-		}
-		else	// Unknown type, abort
-			return;
-
 		for (i=0; i<digit->num_bytes; i++) {
 			ep_write_data(pgm_read_byte(&data[i]));
 		}
 	}
+	else if (digit->type == GFX_DIGIT_BIG) {
+		switch (val) {
+			case 0: data = num_big_0; break;
+			case 1: data = num_big_1; break;
+			case 2: data = num_big_2; break;
+			case 3: data = num_big_3; break;
+			case 4: data = num_big_4; break;
+			case 5: data = num_big_5; break;
+			case 6: data = num_big_6; break;
+			case 7: data = num_big_7; break;
+			case 8: data = num_big_8; break;
+			case 9: data = num_big_9; break;
+			default: 	// Abort on unknown digit
+				ep_cs_deselect();
+				return;
+		}
+		for (i=0; i<digit->num_bytes; i++) {
+			ep_write_data(pgm_read_byte(&data[i]));
+		}
+	}
+	else if (digit->type == GFX_MEM_TXT) {
+		// Display MEMx if value 1-3 given, clear otherwise
+		if ((val == 1) || (val == 2) || (val == 3)) {
+			// Write the digit first (display coordinates go right to left)
+			switch (val) {
+				case 1: data = num_mem_1; break;
+				case 2: data = num_mem_2; break;
+				case 3: data = num_mem_3; break;
+				default: 	// Abort on unknown digit (should never get here)
+					ep_cs_deselect();
+					return;
+			}
+			for (i=0; i<(NUM_MEM_XSIZE*NUM_MEM_YSIZE); i++) {
+				ep_write_data(pgm_read_byte(&data[i]));
+			}
+			// Write the "MEM" text
+			for (i=0; i<(TXT_MEM_XSIZE*TXT_MEM_YSIZE); i++) {
+				ep_write_data(pgm_read_byte(&txt_mem[i]));
+			}
+		}
+		else {
+			// Clear the area of MEMx symbol to white
+			for (i=0; i<digit->num_bytes; i++) {
+				ep_write_data(0xFF);
+			}
+		}
+	}
+	//else	// Ignore unknown type
+
 	ep_cs_deselect();
 
 }

@@ -179,6 +179,15 @@ int main(void) {
 				ep_upd_flg &= ~EPD_UPD_H01;		// Clear flag immediately so new changes will be detected
 				ep_set_num(&digit_hr01, count_time.hr01);
 			}
+			if (ep_upd_flg & EPD_UPD_MEM) {		// Update MEMx text
+				ep_upd_flg &= ~EPD_UPD_MEM;		// Clear flag immediately so new changes will be detected
+				switch (state) {
+					case STATE_SET_MEM1: ep_set_num(&digit_mem, 1); break;
+					case STATE_SET_MEM2: ep_set_num(&digit_mem, 2); break;
+					case STATE_SET_MEM3: ep_set_num(&digit_mem, 3); break;
+					default: ep_set_num(&digit_mem, 0);	// Clear MEMx text if not in MEM edit state
+				}
+			}
 
 			ep_update_display_partial();	// Update display (partial refresh)
 

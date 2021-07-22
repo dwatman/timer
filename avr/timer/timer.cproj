@@ -126,6 +126,9 @@
     <Compile Include="common.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="data_misc.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="data_nums_large.h">
       <SubType>compile</SubType>
     </Compile>
