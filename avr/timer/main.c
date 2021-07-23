@@ -121,7 +121,7 @@ int main(void) {
 	init_gfx_data();
 
 	time_ms = 0;
-	flg = 0;
+	flg = FLG_UPD;					// Update display on start
 	state = STATE_STOPPED;
 
 	ep_upd_flg = EPD_UPD_ALL;		// All areas need updating

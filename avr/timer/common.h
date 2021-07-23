@@ -81,7 +81,7 @@
 //#define EPD_UPD_BAT	0x	// Low battery indication
 //#define EPD_UPD_END	0x	// Alarm end
 #define EPD_UPD_WHI	0x8000	// White background
-#define EPD_UPD_ALL	0xFFFF	// All parts of the display
+#define EPD_UPD_ALL	0x80FF	// All parts of the display
 
 #define SPI_TYPE_CMD	0
 #define SPI_TYPE_DATA	1
