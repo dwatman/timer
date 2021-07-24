@@ -24,7 +24,7 @@ const uint8_t LUT_DATA_part[30] PROGMEM = {
 };
 
 digit_t digit_hr01, digit_chm, digit_min10, digit_min01, digit_cms, digit_sec10, digit_sec01;
-digit_t digit_mem;
+digit_t digit_mem, digit_bat;
 
 void init_gfx_data(void) {
 	digit_sec01.type = GFX_DIGIT_SMALL;
@@ -82,6 +82,13 @@ void init_gfx_data(void) {
 	digit_mem.y_start = DISP_STARTY_MEM;
 	digit_mem.y_end = DISP_STARTY_MEM + TXT_MEM_YSIZE + NUM_MEM_YSIZE - 1;
 	digit_mem.num_bytes = TXT_MEM_XSIZE*(TXT_MEM_YSIZE + NUM_MEM_YSIZE);
+	
+	digit_bat.type = GFX_BAT_TXT;
+	digit_bat.x_start = DISP_STARTX_BAT;
+	digit_bat.x_end = DISP_STARTX_BAT + TXT_BAT_XSIZE - 1;
+	digit_bat.y_start = DISP_STARTY_BAT;
+	digit_bat.y_end = DISP_STARTY_BAT + TXT_BAT_YSIZE +  - 1;
+	digit_bat.num_bytes = TXT_BAT_XSIZE*TXT_BAT_YSIZE;
 }
 
 /*
@@ -378,6 +385,21 @@ void ep_set_num(digit_t *digit, uint8_t val) {
 		}
 		else {
 			// Clear the area of MEMx symbol to white
+			for (i=0; i<digit->num_bytes; i++) {
+				ep_write_data(0xFF);
+			}
+		}
+	}
+	else if (digit->type == GFX_BAT_TXT) {
+		// Display LOWBAT if value >0 given, clear otherwise
+		if (val) {
+			// Write the "LOWBAT" text
+			for (i=0; i<digit->num_bytes; i++) {
+				ep_write_data(pgm_read_byte(&bat_mem[i]));
+			}
+		}
+		else {
+			// Clear the area of LOWBAT symbol to white
 			for (i=0; i<digit->num_bytes; i++) {
 				ep_write_data(0xFF);
 			}

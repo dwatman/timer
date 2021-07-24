@@ -13,6 +13,7 @@
 #define DISP_STARTX_HR		4
 #define DISP_STARTX_CLN		7	// Colons
 #define DISP_STARTX_MEM		1
+#define DISP_STARTX_BAT		0
 
 // Starting Y coordinates (display right to left)
 #define DISP_STARTY_S01		16
@@ -23,6 +24,7 @@
 #define DISP_STARTY_CHM		225
 #define DISP_STARTY_H01		240
 #define DISP_STARTY_MEM		8
+#define DISP_STARTY_BAT		175
 
 void init_gfx_data(void);
 void ep_init_hw(void);

@@ -59,7 +59,7 @@ Interrupts:
 */
 
 extern digit_t digit_hr01, digit_chm, digit_min10, digit_min01, digit_cms, digit_sec10, digit_sec01;
-extern digit_t digit_mem;
+extern digit_t digit_mem, digit_bat;
 
 timer_t count_time;		// Counter time (volatile?)
 
@@ -187,6 +187,12 @@ int main(void) {
 					case STATE_SET_MEM3: ep_set_num(&digit_mem, 3); break;
 					default: ep_set_num(&digit_mem, 0);	// Clear MEMx text if not in MEM edit state
 				}
+			}
+			if (ep_upd_flg & EPD_UPD_BAT) {		// Update LOWBAT text
+				ep_upd_flg &= ~EPD_UPD_BAT;		// Clear flag immediately so new changes will be detected
+				// TODO: Add check for battery level
+				//ep_set_num(&digit_bat, 0);	// Clear text
+				ep_set_num(&digit_bat, 1);	// Write text
 			}
 
 			ep_update_display_partial();	// Update display (partial refresh)

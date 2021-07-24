@@ -64,6 +64,7 @@
 #define GFX_DIGIT_BIG		1
 #define GFX_DIGIT_COLON		2
 #define GFX_MEM_TXT			3
+#define GFX_BAT_TXT			4
 
 // Main loop flags
 #define FLG_UPD		0x01
@@ -78,10 +79,10 @@
 #define EPD_UPD_CMS	0x0020	// Colon between minutes and seconds
 #define EPD_UPD_CHM	0x0040	// Colon between hours and minutes
 #define EPD_UPD_MEM	0x0080	// MEMx edit mode marker
-//#define EPD_UPD_BAT	0x	// Low battery indication
+#define EPD_UPD_BAT	0x0100	// Low battery indication
 //#define EPD_UPD_END	0x	// Alarm end
 #define EPD_UPD_WHI	0x8000	// White background
-#define EPD_UPD_ALL	0x80FF	// All parts of the display
+#define EPD_UPD_ALL	0x81FF	// All parts of the display
 
 #define SPI_TYPE_CMD	0
 #define SPI_TYPE_DATA	1
