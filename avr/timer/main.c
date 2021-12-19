@@ -45,11 +45,11 @@ PORTD:
 	7	O	BUZZER
 
 Timer usage:
-	Timer 1		1ms counter?
+	Timer 1		1 ms counter, changes to 250 us for beep
 	Timer 2		RTC counter
 
 Interrupts:
-	TIMER1_COMPA	millisecond timer?
+	TIMER1_COMPA	millisecond timer, beep timer
 	TIMER2_OVF		RTC timer
 	INT0			CLR button
 	INT1			START button
@@ -76,6 +76,10 @@ volatile enum state_e state;	// Operating state
 volatile uint16_t ep_upd_flg;	// Indicates which areas of the display need updating
 volatile uint16_t ep_upd_flg2;	// For the other image buffer in the display
 volatile enum epd_state_e epd_state;	// State of display
+
+// For generating the beep
+volatile uint8_t beep_cycle;	// 1 sec beeping cycle counter
+volatile uint8_t beep_period;	// pulse period for the beep (variable)
 
 int main(void) {
 	init_pins();			// Pin setup (direction and pullups)
@@ -225,15 +229,40 @@ int main(void) {
 
 // Timer/Counter1 Compare Match A
 ISR(TIMER1_COMPA_vect) {
+	static uint8_t beep_count = 0;
+	static uint8_t beep_phase = 0;
+
 	time_ms++;
 
 	if (time_ms%10 == 0) check_buttons();	// Check buttons for time pressed
 
 	if (state == STATE_END_BEEP) {	// Beeping
-		if (time_ms%4 < 2)
-			PORTD |= BUZZER_MASK;	// Buzzer on
-		else
-			PORTD &= ~BUZZER_MASK;	// Buzzer off
+		// Speaker is active on even numbers
+		if (beep_cycle%2 == 0) {	// Cycles last for 1 second
+			
+			if (beep_count >= beep_period) {	// End of pulse
+				beep_count = 0;
+				beep_phase++;
+
+				if ((beep_period > 1) && (beep_phase%BEEP_CYCLE_LEN == (BEEP_CYCLE_LEN-1)))
+					beep_period--;
+			}
+			else {	// Counting pulse time
+				beep_count++;
+			}
+			
+			if (beep_phase%2 == 0)
+				PORTD |= BUZZER_MASK;	// Buzzer on
+			else
+				PORTD &= ~BUZZER_MASK;	// Buzzer off 
+
+		}
+		else {
+			PORTD &= ~BUZZER_MASK;	// Buzzer off for quiet period
+			beep_phase = 0;
+			beep_count = 0;
+			beep_period = BEEP_INIT_PER;
+		}
 	}
 
 	//if (time_ms%1000 == 0) flg |= FLAG_1S;
@@ -248,15 +277,25 @@ ISR(TIMER2_OVF_vect) {
 	if (state == STATE_ACTIVE) {	// Counting down
 		tmp = timer_count_down(&count_time);
 		if (tmp != 0) {	// Count reached zero
+			beep_cycle = 0;
+			beep_period = BEEP_INIT_PER;
+			OCR1A = 249;	// Speed up timer for beeping (250 us tick)
 			state = STATE_END_BEEP;
 		}
 		flg |= FLG_UPD;		// Set flag to update display
 	}
 	else if (state == STATE_END_BEEP) {	// Beeping
-		//PORTC &= ~MOFF_MASK;	// Enable microphone
-		//PORTC |= MOFF_MASK;	// Disable microphone
-		PORTD &= ~BUZZER_MASK;	// Buzzer off
-		state = STATE_END_DONE;
+		if (beep_cycle >= (BEEP_CYCLES-1)*2) {
+			//PORTC &= ~MOFF_MASK;	// Enable microphone
+			//PORTC |= MOFF_MASK;	// Disable microphone
+			PORTD &= ~BUZZER_MASK;	// Buzzer off
+			OCR1A = 999;			// Restore timer speed for ms counting
+			state = STATE_END_DONE;			
+		}
+		else {
+			beep_cycle++;
+		}		
+
 	}
 	else if (state == STATE_END_DONE) {	// Finished beeping
 		state = STATE_STOPPED;

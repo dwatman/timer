@@ -3,8 +3,12 @@
 
 // Adjustable parameters
 #define BTN_SHORT_PRESS	5		// 50 ms threshold for short press (all buttons)
-#define HMS_LONG_PRESS	50		// 500 ms threshold for hour/minute/second buttons to activate fast counting
+#define HMS_LONG_PRESS	70		// 700 ms threshold for hour/minute/second buttons to activate fast counting
 #define MEM_LONG_PRESS	100		// 1000 ms threshold for memory buttons to activate edit mode
+
+#define BEEP_CYCLES		6		// Number of beep cycles (1 cycle = 1 sec beeping, 1 sec pause between)
+#define BEEP_CYCLE_LEN	16		// Pulse repeats per cycle
+#define BEEP_INIT_PER	16		// Initial period of beep tone (x 250 us, 16 -> 250 Hz)
 
 // PORTA pin definitions
 #define MBLANK_PIN	2
