@@ -1,0 +1,9 @@
+# Temporary Altium files
+/__Previews/
+
+# Previous versions
+/History/
+
+# Generated files
+/Project Output*/
+*.PrjPcbStructure
