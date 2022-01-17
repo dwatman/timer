@@ -21,7 +21,7 @@ PORTA:
 	6	I	BTN_MIN10	PCINT6
 	7	I	BTN_HR		PCINT7
 PORTB:
-	0	I	LOWBAT
+	0	I	LOWBAT				(logic low when VCC is below 2.5V)
 	1	I	BUSY		PCINT9
 	2	O	RST#
 	3	O	DAT/CMD#
@@ -194,9 +194,11 @@ int main(void) {
 			}
 			if (ep_upd_flg & EPD_UPD_BAT) {		// Update LOWBAT text
 				ep_upd_flg &= ~EPD_UPD_BAT;		// Clear flag immediately so new changes will be detected
-				// TODO: Add check for battery level
-				//ep_set_num(&digit_bat, 0);	// Clear text
-				ep_set_num(&digit_bat, 1);	// Write text
+				// Check for battery level
+				if (check_lowbat() == 0)
+					ep_set_num(&digit_bat, 1);	// Write LOWBAT text
+				else
+					ep_set_num(&digit_bat, 0);	// Clear text area
 			}
 
 			ep_update_display_partial();	// Update display (partial refresh)
@@ -272,6 +274,7 @@ ISR(TIMER1_COMPA_vect) {
 
 // Timer/Counter2 Overflow
 ISR(TIMER2_OVF_vect) {
+	static uint8_t batlevel = 0xFF;	// Fill history with 'good battery' state
 	uint8_t tmp;
 
 	if (state == STATE_ACTIVE) {	// Counting down
@@ -300,6 +303,12 @@ ISR(TIMER2_OVF_vect) {
 	else if (state == STATE_END_DONE) {	// Finished beeping
 		state = STATE_STOPPED;
 	}
+
+	// Check for reliable change in battery level monitor (new state for 7 sec)
+	batlevel = (batlevel<<1) | check_lowbat();	// Shift left, newest measurement is LSB
+
+	if ((batlevel == 0x80) || (batlevel == 0x7F))	// Update display if reliable change detected
+		ep_upd_flg |= EPD_UPD_BAT;
 
 	//PORTC ^= LED_MASK;
 }

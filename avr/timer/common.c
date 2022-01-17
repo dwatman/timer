@@ -49,9 +49,9 @@ void init_pin_interrupts(void) {
 
 uint8_t check_lowbat(void) {
 	if (PINB & LOWBAT_MASK)
-		return 1;
+		return 1;	// Battery voltage is above threshold
 	else
-		return 0;
+		return 0;	// Battery voltage is below threshold
 }
 
 void delay_ms(uint16_t delay) {
